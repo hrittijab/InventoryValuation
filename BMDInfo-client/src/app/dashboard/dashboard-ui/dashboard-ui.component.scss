@@ -1,0 +1,249 @@
+#main {
+  margin-top: 60px;
+  padding: 20px 30px;
+  transition: all 0.3s;
+}
+
+@media (max-width: 1199px) {
+  #main {
+    padding: 20px;
+  }
+}
+@media (min-width: 1200px) {
+  #main,
+  #footer {
+    margin-left: 300px;
+  }
+}
+@media (min-width: 1200px) {
+  .toggle-sidebar #main,
+  .toggle-sidebar #footer {
+    margin-left: 0;
+  }
+}
+
+/* === Search Bar Styling === */
+#general-search-container form {
+  background: #f8f9fa;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  display: flex;
+  align-items: center;
+}
+
+#general-search-container .form-control {
+  flex: 1;
+  margin-right: 12px;
+  font-weight: 500;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+#general-search-container .form-control::placeholder {
+  font-weight: 500;
+  color: #999;
+}
+
+#search-btn {
+  font-weight: bold;
+  background-color: #4A4DC4;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+  padding: 6px 12px;
+}
+
+#search-btn:hover {
+  background-color: #383bb0;
+}
+
+/* === Table Styling === */
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  background-color: #fff;
+}
+
+
+.table thead th {
+  background-color: #6364c1;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  padding: 12px;
+  font-size: 14px; /* Added font size */
+}
+
+
+.table td,
+.table th {
+  text-align: center;
+  vertical-align: middle;
+  padding: 10px;
+  border: 1px solid #dee2e6;
+}
+
+
+/* === Button Styling === */
+.btn {
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 5px 10px;
+  margin: 2px;
+  transition: all 0.3s ease;
+}
+
+.btn-info {
+  background-color: #17a2b8;
+  color: #fff;
+  border: none;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: #fff;
+  border: none;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: #fff;
+  border: none;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+
+////
+.pagination-info {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #6c757d;
+  padding-right: 20px; /* Adds space on the right */
+}
+
+.pagination-info .d-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.pagination-info p {
+  margin: 0;  /* Remove bottom margin to avoid extra space */
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.page-item {
+  display: inline-block;
+}
+
+.page-link:link,
+.page-link:visited {
+  text-decoration: none;
+  color: #343a40;
+  font-size: 18px;
+  height: 36px;
+  width: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: 1px solid #ddd;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.page-link:hover,
+.page-link:active,
+.page-link.page-link--current {
+  background-color: #4A4DC4;
+  color: #fff;
+  border-color: #4A4DC4;
+}
+
+.page-item.disabled .page-link {
+  color: #ccc;
+  border-color: #ccc;
+  cursor: not-allowed;
+}
+
+.page-item .page-link {
+  padding: 6px 12px;
+  border-radius: 6px;
+  background-color: #f8f9fa;
+  font-weight: bold;
+}
+
+.page-item .page-link:hover,
+.page-item .page-link:active {
+  background-color: #f1f3f5;
+  color: #343a40;
+}
+
+.page-item.active .page-link {
+  background-color: #4A4DC4;
+  color: white;
+  border-color: #4A4DC4;
+}
+
+.page-item:not(.active) .page-link {
+  color: #495057;
+}
+
+.page-item:not(.active) .page-link:hover {
+  background-color: #e2e6ea;
+}
+
+.dots {
+  color: #868e96;
+  font-size: 18px;
+}
+
+#btn {
+  border: 1px solid #087f5b;
+  height: 48px;
+  width: 48px;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#btn:hover {
+  background-color: #087f5b;
+}
+
+#btn:hover .btn-icon {
+  stroke: #fff;
+}
+
+.btn-icon {
+  width: 24px;
+  height: 24px;
+  stroke: #087f5b;
+}
+
+.table tbody tr:hover {
+  background-color: #d0e3ff;
+  color: #c01c1c;
+  cursor: pointer;
+}

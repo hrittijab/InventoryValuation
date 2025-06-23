@@ -28,9 +28,10 @@ public class BidTrackerSheetImportService {
     }
 
     public void importSheetData() throws Exception {
+        this.deleteAll();
         Sheets sheets = getSheetsService();
         String spreadsheetId = "1HxS-bQ1quAmwZDDQjrPl5DvayQKVFSFh8b51fyDZ6vc";
-        String range = "bids!B3:AE1000";
+        String range = "bids!B4:AE";
 
         ValueRange response = sheets.spreadsheets().values().get(spreadsheetId, range).execute();
         List<List<Object>> rows = response.getValues();
@@ -67,7 +68,8 @@ public class BidTrackerSheetImportService {
                 LocalDate issuingDate = parseDate(getString(row, i++), dateFormatter1);
                 String referenceNumber = getString(row, i++);
                 String issuingBank = getString(row, i++);
-                LocalDate date = parseDate(getString(row, i++), dateFormatter2);
+                LocalDate expiryDate = parseDate(getString(row, i++), dateFormatter2);
+                String submission = getString(row, i++);
                 String result = getString(row, i++);
                 String noName = getString(row, i++);
                 String remarks = getString(row, i++);
@@ -78,7 +80,7 @@ public class BidTrackerSheetImportService {
                         tenderId, initiation, published_initiation, published, preBidDate,
                         preBidTime, submissionDate, submissionTime, securityMode,
                         securityAmount, creditFacility, issuingDate, referenceNumber,
-                        issuingBank, date, result, noName, remarks
+                        issuingBank, expiryDate, submission, result, noName, remarks
                 );
 
                 bidTrackerRepository.save(bidTracker);
@@ -133,4 +135,17 @@ public class BidTrackerSheetImportService {
             return null;
         }
     }
+
+    public List<BidTracker> getAll(){
+        return bidTrackerRepository.findAll();
+    }
+
+    public BidTracker getById(Long id){
+        return bidTrackerRepository.findById(id).orElse(null);
+    }
+
+    public void deleteAll(){
+        bidTrackerRepository.deleteAll();
+    }
+
 }
