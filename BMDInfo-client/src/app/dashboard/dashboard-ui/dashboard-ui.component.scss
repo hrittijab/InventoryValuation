@@ -22,7 +22,6 @@
   }
 }
 
-/* === Search Bar Styling === */
 #general-search-container form {
   background: #f8f9fa;
   padding: 15px 20px;
@@ -60,13 +59,18 @@
   background-color: #383bb0;
 }
 
-/* === Table Styling === */
-.table {
-  border-collapse: collapse;
+.table-and-chart-holder{
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  background-color: #fff;
 }
 
+.table {
+  border-collapse: collapse;
+  background-color: #fff;
+  width: 90%;
+}
 
 .table thead th {
   background-color: #6364c1;
@@ -77,12 +81,18 @@
   font-size: 14px; /* Added font size */
 }
 
+table.table td,
+table.table th {
+  padding: 4px 8px; /* Reduce vertical (4px) and horizontal (8px) padding */
+  line-height: 1; /* Tighter line spacing */
+  font-size: 13px; /* Optional: smaller text */
+}
+
 
 .table td,
 .table th {
   text-align: center;
   vertical-align: middle;
-  padding: 10px;
   border: 1px solid #dee2e6;
 }
 
@@ -246,4 +256,54 @@
   background-color: #d0e3ff;
   color: #c01c1c;
   cursor: pointer;
+}
+
+/* dashboard-ui.component.scss */
+button[disabled] {
+  background-color: #007bff;
+  color: white;
+  cursor: default;
+}
+
+.pagination{
+ padding: 5px 30px;
+}
+
+.goBackContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 100px;
+}
+
+.goBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  margin-bottom: 16px;
+  background-color: #f0f0f0;
+  color: #333;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  width: fit-content;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.goBack:hover {
+  background-color: #e0e0e0;
+  transform: translateX(-2px);
+}
+
+.goBack i {
+  font-size: 16px;
+}
+.chart{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }

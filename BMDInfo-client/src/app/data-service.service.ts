@@ -21,5 +21,11 @@ export class DataServiceService {
   public getBidTrackerData(){
    return this.http.get<BidTracker[]>(this.baseUrl + this.bidTrackerUrl);
   }
+
+  public sheetDataUrl = "/bid-tracker-sheets/import";
+
+  public getSpradeSheetData(){
+   return this.http.post(this.baseUrl + this.sheetDataUrl, {});
+  }
   
 }

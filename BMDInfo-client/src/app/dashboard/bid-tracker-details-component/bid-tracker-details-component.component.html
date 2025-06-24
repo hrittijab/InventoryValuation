@@ -1,0 +1,44 @@
+<div class="container p-3">
+  <h4>Bid Tracker Details</h4>
+  <div class="row">
+    <div class="col-md-6" *ngFor="let field of [
+      {label: 'Client', value: data.client},
+      {label: 'Description', value: data.description},
+      {label: 'CAM', value: data.cam},
+      {label: 'Sales Resource', value: data.salesResource},
+      {label: 'Bid Manager', value: data.bidManager},
+      {label: 'Initiation Mode', value: data.initiationMode},
+      {label: 'Stage', value: data.stage},
+      {label: 'Procurement Type', value: data.procurementType},
+      {label: 'Goods', value: data.goods},
+      {label: 'Works', value: data.works},
+      {label: 'Service', value: data.service},
+      {label: 'Tender ID', value: data.tenderId},
+      {label: 'Initiation', value: data.initiation},
+      {label: 'Published Initiation', value: data.published_initiation},
+      {label: 'Published', value: data.published},
+      {label: 'Pre-Bid Date', value: data.preBidDate},
+      {label: 'Pre-Bid Time', value: data.preBidTime},
+      {label: 'Submission Date', value: data.submissionDate},
+      {label: 'Submission Time', value: data.submissionTime},
+      {label: 'Security Mode', value: data.securityMode},
+      {label: 'Security Amount', value: data.securityAmount},
+      {label: 'Credit Facility', value: data.creditFacility},
+      {label: 'Issuing Date', value: data.issuingDate},
+      {label: 'Reference Number', value: data.referenceNumber},
+      {label: 'Issuing Bank', value: data.issuingBank},
+      {label: 'Expiry Date', value: data.expiryDate},
+      {label: 'Submission', value: data.submission},
+      {label: 'Result', value: data.result},
+      {label: 'No Name', value: data.noName},
+      {label: 'Remarks', value: data.remarks}
+    ]">
+      <div class="mb-2">
+        <label class="form-label fw-bold">{{ field.label }}</label>
+        <div class="form-control bg-light" style="min-height: 38px;">
+          {{ field.value || '-' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

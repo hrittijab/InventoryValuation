@@ -27,8 +27,6 @@
                     <!-- Menu -->
                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="sidebarAvatar">
                         <a class="dropdown-item">Profile</a>
-                        <a class="dropdown-item">Settings</a>
-                        <a  class="dropdown-item">Billing</a>
                         <hr class="dropdown-divider">
                         <a (click)="logOut()"  class="dropdown-item">Logout</a>
                     </div>
@@ -110,13 +108,13 @@
                         
                         <!-- Actions -->
                         <div class="col-sm-6 col-12 text-sm-end">
-                            <div class="mx-n1">
-                                <!-- <a  class="btn d-inline-flex btn-sm btn-neutral border-base mx-1">
+                            <div class="mx-n1" (click)="refreshData()">
+                                <a  class="btn d-inline-flex btn-sm btn-neutral border-base mx-1">
                                     <span class=" pe-2">
-                                        <i class="bi bi-pencil"></i>
+                                        <i class="bi bi-arrow-clockwise"></i>
                                     </span>
-                                    <span>Edit</span>
-                                </a> -->
+                                    <span>Refresh Data</span>
+                                </a>
                             </div>
                         </div>
                     </div>

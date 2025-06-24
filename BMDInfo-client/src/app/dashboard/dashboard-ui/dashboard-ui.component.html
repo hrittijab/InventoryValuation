@@ -1,17 +1,15 @@
-
-<!-- List of Users -->
+<div class="contaner">
+<div class="table-and-chart-holder">
+<div class="table-container" *ngIf="!selectedItem" >
 <table class="table table-bordered table-hover">
   <thead>
     <tr>
       <th scope="col">SL</th>
       <th scope="col">client</th>
       <th scope="col">stage</th>
-      <!-- <th scope="col">tender-id</th> -->
       <th scope="col">published</th>
       <th scope="col">submission</th>
       <th scope="col">security-amount</th>
-      <!-- <th scope="col">credit-facility</th> -->
-      <!-- <th scope="col">Issuing Date</th> -->
       <th scope="col">Expiry Date</th>
       <th scope="col">submission</th>
       <th scope="col">result</th>
@@ -19,27 +17,54 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let i of allSpradSheetData; let j = index">
-      <td>{{ j +1 }}</td>
-      <td>{{ i.client}}</td>
+    <tr *ngFor="let i of paginatedData; let j = index">
+      <td>{{ (currentPage - 1) * pageSize + j + 1 }}</td>
+      <td>{{ i.client }}</td>
       <td>{{ i.stage }}</td>
-      <!-- <td>{{ i.tenderId }}</td> -->
-      <td>{{ i.published}}</td>
-      <td>{{ i.submissionDate}}</td>
-      <td>{{ i.securityAmount}}</td>
-      <!-- <td>{{ i.creditFacility}}</td> -->
-      <!-- <td>{{ i.issuingDate}}</td> -->
-
-      <td>{{ i.expiryDate}}</td>
-      <td>{{ i.submission}}</td>
-      <td>{{ i.result}}</td>
+      <td>{{ i.published }}</td>
+      <td>{{ i.submissionDate }}</td>
+      <td>{{ i.securityAmount }}</td>
+      <td>{{ i.expiryDate }}</td>
+      <td>{{ i.submission }}</td>
+      <td>{{ i.result }}</td>
       <td>
-        <!-- <span>{{ i.password }}</span> -->
-        <button 
-          class="btn btn-sm btn-secondary ml-2"
-          > Show Details </button>
+       <button 
+        class="btn btn-sm btn-secondary ml-2"
+        (click)="selectedItem = i"
+      >
+        Show Details
+      </button>
       </td>
-      
     </tr>
   </tbody>
 </table>
+
+<!-- Pagination Controls -->
+<div class="mt-3 pagination">
+  <button
+    *ngFor="let page of [].constructor(totalPages()); let i = index"
+    (click)="changePage(i + 1)"
+    [disabled]="currentPage === i + 1"
+    class="btn btn-outline-primary btn-sm mx-1"
+  >
+    {{ i + 1 }}
+  </button>
+</div>
+</div>
+</div>
+<!-- Details View -->
+<app-bid-tracker-details-component 
+  *ngIf="selectedItem" 
+  [data]="selectedItem">
+</app-bid-tracker-details-component>
+
+<div class="goBackContainer">
+  <div *ngIf="selectedItem" class="goBack" (click)="goBack()">
+  <i class="fa fa-arrow-left" aria-hidden="true"></i> Go Back
+</div>
+</div>
+
+<div class="chart">
+<ng-template #chartContainer></ng-template>
+</div>
+</div>
