@@ -1,6 +1,12 @@
 import { DataServiceService } from '../../data-service.service';
 import { Router } from '@angular/router';
-import {isPlatformBrowser, formatDate, CommonModule, NgFor, NgIf } from '@angular/common';
+import {
+  isPlatformBrowser,
+  formatDate,
+  CommonModule,
+  NgFor,
+  NgIf
+} from '@angular/common';
 import { BidTracker } from '../../interface/bid-tracker';
 import { BidTrackerDetailsComponentComponent } from '../bid-tracker-details-component/bid-tracker-details-component.component';
 
@@ -8,11 +14,9 @@ import {
   Component,
   OnInit,
   ViewContainerRef,
-  inject,
   Inject,
   PLATFORM_ID,
-  ViewChild,
-  ElementRef
+  ViewChild
 } from '@angular/core';
 
 import {
@@ -20,11 +24,16 @@ import {
   ApexResponsive,
   ApexChart,
   ApexDataLabels,
-  ApexTooltip
-} from "ng-apexcharts";
-import { log } from 'node:console';
+  ApexTooltip,
+  ApexAxisChartSeries,
+  ApexPlotOptions,
+  ApexXAxis,
+  ApexLegend,
+  ApexFill
+} from 'ng-apexcharts';
 
-export type ChartOptions = {
+
+export type PieChartOptions = {
   series: ApexNonAxisChartSeries;
   chart: ApexChart;
   responsive: ApexResponsive[];
@@ -33,15 +42,25 @@ export type ChartOptions = {
   tooltip?: ApexTooltip;
 };
 
+export type BarChartOptions = {
+  series: ApexAxisChartSeries;
+  chart: ApexChart;
+  colors: string[];
+  dataLabels: ApexDataLabels;
+  plotOptions: ApexPlotOptions;
+  responsive: ApexResponsive[];
+  xaxis: ApexXAxis;
+  legend: ApexLegend;
+  fill: ApexFill;
+};
 
 @Component({
   selector: 'app-dashboard-ui',
   standalone: true,
-  imports: [NgFor, NgIf, CommonModule, BidTrackerDetailsComponentComponent,],
+  imports: [NgFor, NgIf, CommonModule, BidTrackerDetailsComponentComponent],
   templateUrl: './dashboard-ui.component.html',
-  styleUrl: './dashboard-ui.component.scss'
+  styleUrl: './dashboard-ui.component.scss',
 })
-
 export class DashboardUiComponent implements OnInit {
   fromDate: string = '';
   toDate: string = '';
@@ -52,15 +71,107 @@ export class DashboardUiComponent implements OnInit {
   pageSize = 20;
   selectedItem: BidTracker | null = null;
 
-  Submissions: number = 0;
-  Won: number = 0;
-  Pending: number = 0;
+  Submissions = 0;
+  Won = 0;
+  Pending = 0;
 
-  // private vcr = inject(ViewContainerRef);
   @ViewChild('chartContainer', { read: ViewContainerRef, static: true })
   chartContainer!: ViewContainerRef;
+
   isBrowser: boolean;
-  isContainBidTrackerUrl: boolean = false;
+  isContainBidTrackerUrl = false;
+
+  pieChartOptions: PieChartOptions = {
+    series: [0, 0, 0],
+    chart: {
+      width: 380,
+      type: 'pie',
+    },
+    labels: ['Submissions', 'Won', 'Pending'],
+    dataLabels: {
+      enabled: true,
+      formatter: (val, opts) => {
+        return opts.w.globals.series[opts.seriesIndex].toString();
+      },
+    },
+    tooltip: {
+      y: {
+        formatter: (val) => val.toString(),
+      },
+    },
+    responsive: [
+      {
+        breakpoint: 480,
+        options: {
+          chart: {
+            width: 200,
+          },
+          legend: {
+            position: 'bottom',
+          },
+        },
+      },
+    ],
+  };
+
+  barChartOptions: BarChartOptions = {
+    series: [
+      {
+        name: 'Submited',
+        data: [44, 55, 41, 67, 22, 43],
+      },
+      {
+        name: 'Not Submited',
+        data: [13, 23, 20, 8, 13, 27],
+      }
+    ],
+    chart: {
+      type: 'bar',
+      height: 350,
+      stacked: true,
+      toolbar: { show: false },
+      zoom: { enabled: true },
+    },
+    colors: ['#1E90FF', '#DC3545'], // <-- CUSTOM COLORS
+    plotOptions: {
+      bar: {
+        horizontal: false,
+      },
+    },
+    xaxis: {
+      type: 'category',
+      categories: [
+        '01/2025',
+        '02/2025',
+        '03/2025',
+        '04/2025',
+        '05/2025',
+        '06/2025',
+      ],
+    },
+    legend: {
+      position: 'right',
+      offsetY: 40,
+    },
+    fill: {
+      opacity: 1,
+    },
+    dataLabels: {
+      enabled: false,
+    },
+    responsive: [
+      {
+        breakpoint: 480,
+        options: {
+          legend: {
+            position: 'bottom',
+            offsetX: -10,
+            offsetY: 0,
+          },
+        },
+      },
+    ],
+  };
 
   constructor(
     private router: Router,
@@ -68,7 +179,8 @@ export class DashboardUiComponent implements OnInit {
     @Inject(PLATFORM_ID) platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
-        const today = new Date();
+
+    const today = new Date();
     const before7 = new Date(today);
     before7.setDate(today.getDate() - 7);
 
@@ -79,123 +191,93 @@ export class DashboardUiComponent implements OnInit {
     this.toDate = formatDate(after21, 'EEE, MMM d, y', 'en-US');
   }
 
-public chartOptions: ChartOptions = {
-  series: [0, 0, 0],
-
-  chart: {
-    width: 380,
-    type: 'pie',
-  },
-  labels: ['Submissions', 'Won', 'Pending'],
-  dataLabels: {
-    enabled: true,
-    formatter: (val, opts) => {
-      // opts.w.globals.series[opts.seriesIndex] is the raw value
-      return opts.w.globals.series[opts.seriesIndex].toString();
-    },
-  },
-  tooltip: {
-    y: {
-      formatter: (val) => val.toString(),
-    },
-  },
-  responsive: [
-    {
-      breakpoint: 480,
-      options: {
-        chart: {
-          width: 200,
-        },
-        legend: {
-          position: 'bottom',
-        },
-      },
-    },
-  ],
-};
-showReport() {
-  const from = new Date(this.fromDate);
-  const to = new Date(this.toDate);
-
-  let count = 1;
-  let skipped = 0;
-
-  const filteredData = [];  // collect matching items
-
-  for (const item of this.allSpradSheetData) {
-    if (item.submissionDate) {
-      const subDate = new Date(item.submissionDate);
-
-      if (subDate >= from && subDate <= to) {
-        filteredData.push(item);  // add to result array
-        console.log(`${count++}.`, item.submissionDate, item);
-      } else {
-        skipped++;
-      }
-    } else {
-      skipped++;
-    }
-  }
-
-  this.allSpradSheetData = filteredData;  // assign once after loop
-  this.updatePaginatedData();
-
-  console.log(`Skipped: ${skipped}`);
-}
-
-countSubmission() {
-  this.Submissions = 0;
-  this.Won = 0;
-  this.Pending = 0;
-
-  for (const item of this.allSpradSheetData) {
-    // Count "Submitted" in submission field
-    if (item.submission && item.submission.toLowerCase().includes('submitted')) {
-      this.Submissions++;
-    }
-
-    // Count "Won" in result field
-    if (item.result && item.result.toLowerCase().includes('won')) {
-      this.Won++;
-    }
-
-    // Count "Pending" in result field
-    if (item.result && item.result.toLowerCase().includes('pending')) {
-      this.Pending++;
-    }
-
-  }
-  
-  this.chartOptions.series = [this.Submissions, this.Won, this.Pending];
-
-  console.log(`✅ Total Submissions: ${this.Submissions}`);
-  console.log(`🏆 Total Wins: ${this.Won}`);
-  console.log(`⏳ Total Pending: ${this.Pending}`);
-
-
-}
-
-
-
   ngOnInit() {
     this.isContainBidTrackerUrl = this.router.url.includes('bid-tracker');
+
     this.dataService.getBidTrackerData().subscribe({
       next: (r) => {
         this.allSpradSheetData = r;
         this.updatePaginatedData();
         this.countSubmission();
-        if(this.isContainBidTrackerUrl == false) {
-        this.showReport();
+        if (!this.isContainBidTrackerUrl) {
+          this.showReport();
         }
       },
       error: (err) => console.error(err),
     });
-   if (this.isBrowser && this.isContainBidTrackerUrl) {
-    import('../pie-chart-component/pie-chart-component.component').then(({ PieChartComponent }) => {
-     const chartRef = this.chartContainer.createComponent(PieChartComponent);
-      chartRef.setInput('chartOptions', this.chartOptions);
-    });
-   }
+
+    if (this.isBrowser) {
+      import('../pie-chart-component/pie-chart-component.component').then(
+        ({ PieChartComponent }) => {
+          const pieRef = this.chartContainer.createComponent(PieChartComponent);
+          pieRef.setInput('chartOptions', this.pieChartOptions);
+        }
+      );
+
+      import('../../bar-chart-component/bar-chart-component.component').then(
+        ({ BarChartComponentComponent }) => {
+          const barRef = this.chartContainer.createComponent(BarChartComponentComponent);
+          barRef.setInput('chartOptions', this.barChartOptions);
+        }
+      );
+    }
+  }
+
+  showReport() {
+    const from = new Date(this.fromDate);
+    const to = new Date(this.toDate);
+
+    let count = 1;
+    let skipped = 0;
+    const filteredData = [];
+
+    for (const item of this.allSpradSheetData) {
+      if (item.submissionDate) {
+        const subDate = new Date(item.submissionDate);
+        if (subDate >= from && subDate <= to) {
+          filteredData.push(item);
+          console.log(`${count++}.`, item.submissionDate, item);
+        } else {
+          skipped++;
+        }
+      } else {
+        skipped++;
+      }
+    }
+
+    this.allSpradSheetData = filteredData;
+    this.updatePaginatedData();
+
+    console.log(`Skipped: ${skipped}`);
+  }
+
+  countSubmission() {
+    this.Submissions = 0;
+    this.Won = 0;
+    this.Pending = 0;
+
+    for (const item of this.allSpradSheetData) {
+      if (
+        item.submission &&
+        item.submission.toLowerCase().includes('submitted')
+      ) {
+        this.Submissions++;
+      }
+
+      if (item.result && item.result.toLowerCase().includes('won')) {
+        this.Won++;
+      }
+
+      if (item.result && item.result.toLowerCase().includes('pending')) {
+        this.Pending++;
+      }
+    }
+
+    this.pieChartOptions.series = [this.Submissions, this.Won, this.Pending];
+
+    console.log(`✅ Total Submissions: ${this.Submissions}`);
+    console.log(`🏆 Total Wins: ${this.Won}`);
+    console.log(`⏳ Total Pending: ${this.Pending}`);
   }
 
   updatePaginatedData() {
