@@ -16,7 +16,7 @@ import java.time.LocalTime;
 @AllArgsConstructor
 public class BidTracker {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
 
     private String client;
