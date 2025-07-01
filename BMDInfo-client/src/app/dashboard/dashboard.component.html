@@ -1,4 +1,7 @@
-<!-- Banner -->
+<!-- Spinner -->
+ <div class="spinner">
+<div class="lds-dual-ring"></div>
+</div>
 
 <!-- Dashboard -->
 <div class="d-flex flex-column flex-lg-row h-lg-full bg-surface-secondary" *ngIf="storedValue">
@@ -36,25 +39,23 @@
             <div class="collapse navbar-collapse" id="sidebarCollapse">
                 <!-- Navigation -->
                 <ul class="navbar-nav">
+
                     <li routerLink="/dashboard/dashboard" class="nav-item">
                         <a  class="nav-link">
                             <i class="bi bi-house"></i> Dashboard
                         </a>
                     </li>
 
-                    <!-- <li class="nav-item">
-                        <a routerLink="/admin/dashboard/addVisa" class="nav-link">
-                            <i class="bi bi-people"></i> Add New 
+                    <li routerLink="/dashboard/bid-tracker" class="nav-item">
+                        <a  class="nav-link">
+                            <i class="bi bi-house"></i> Bid Tracker
                         </a>
-                    </li> -->
-                  
-                    <li class="nav-item">
+                    </li>
+                    <!-- <li class="nav-item">
                         <a class="nav-link">
                             <i class="bi bi-bar-chart"></i> Analitycs
                         </a>
-                    </li>
-                  
-                  
+                    </li> -->
                 </ul>
                 <!-- Divider -->
               
@@ -104,16 +105,14 @@
                               </form> -->
                         </div>
 
-                       
-                        
                         <!-- Actions -->
                         <div class="col-sm-6 col-12 text-sm-end">
-                            <div class="mx-n1" (click)="refreshData()">
+                            <div class="mx-n1" (click)="fetchData()">
                                 <a  class="btn d-inline-flex btn-sm btn-neutral border-base mx-1">
                                     <span class=" pe-2">
                                         <i class="bi bi-arrow-clockwise"></i>
                                     </span>
-                                    <span>Refresh Data</span>
+                                    <span>Fetch Data</span>
                                 </a>
                             </div>
                         </div>

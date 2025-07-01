@@ -1,6 +1,13 @@
 <div class="contaner">
 <div class="table-and-chart-holder">
 <div class="table-container" *ngIf="!selectedItem" >
+  <div class="date-filter p-4">
+   <p>Showing Report of: </p> 
+  <label><strong>From Date:</strong> {{ fromDate }}</label><br />
+  <label><strong>To Date:</strong> {{ toDate }}</label><br /><br />
+  
+  <!-- <button (click)="showReport();">Show Report</button> -->
+</div>
 <table class="table table-bordered table-hover">
   <thead>
     <tr>

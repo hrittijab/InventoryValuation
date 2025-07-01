@@ -1,3 +1,4 @@
+
 #main {
   margin-top: 60px;
   padding: 20px 30px;
@@ -57,6 +58,13 @@
 
 #search-btn:hover {
   background-color: #383bb0;
+}
+
+.date-filter{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .table-and-chart-holder{

@@ -3,7 +3,6 @@ import { Component } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { DataServiceService } from '../data-service.service';
-import { log } from 'console';
 
 @Component({
   selector: 'app-dashboard',
@@ -39,13 +38,20 @@ export class DashboardComponent {
 
   }
 
-  refreshData() {
+  fetchData() {
       this.dataService.getSpradeSheetData().subscribe({
       next: (r) => {
-       console.log(r);
-       window.location.reload();
+      
       },
-      error: (err) => console.error(err),
+      error: (err) => {
+        if (err.status === 200) {
+            alert('Data fetched successfully');
+            window.location.reload();
+        }else {
+        alert('Error fetching data: ' + err.message);
+        console.error(err);
+        }
+      } 
     });
   }
 
