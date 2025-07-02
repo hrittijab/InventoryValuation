@@ -14,8 +14,8 @@ export const routes: Routes = [
     
     children: [
       {
-        path: 'bid-tracker',
-        title: 'Bid Tracker',
+        path: '',
+        title: 'Dashboard',
         component: DashboardUiComponent
       },
       {
@@ -23,6 +23,11 @@ export const routes: Routes = [
         title: 'Dashboard',
         component: DashboardUiComponent
       },
+      {
+        path: 'bid-tracker',
+        title: 'Bid Tracker',
+        component: DashboardUiComponent
+      }
 
     ]
 

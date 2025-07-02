@@ -31,6 +31,8 @@ import {
   ApexLegend,
   ApexFill
 } from 'ng-apexcharts';
+import { FormsModule } from '@angular/forms';
+import { SubmissionData } from '../../interface/submission-data';
 
 
 export type PieChartOptions = {
@@ -57,11 +59,15 @@ export type BarChartOptions = {
 @Component({
   selector: 'app-dashboard-ui',
   standalone: true,
-  imports: [NgFor, NgIf, CommonModule, BidTrackerDetailsComponentComponent],
+  imports: [NgFor, FormsModule, NgIf, CommonModule, BidTrackerDetailsComponentComponent],
   templateUrl: './dashboard-ui.component.html',
   styleUrl: './dashboard-ui.component.scss',
 })
 export class DashboardUiComponent implements OnInit {
+
+  fromDateRaw!: string;  // bound to input[type=date]
+  toDateRaw!: string;
+
   fromDate: string = '';
   toDate: string = '';
 
@@ -71,23 +77,55 @@ export class DashboardUiComponent implements OnInit {
   pageSize = 20;
   selectedItem: BidTracker | null = null;
 
-  Submissions = 0;
-  Won = 0;
-  Pending = 0;
+  submitted = 0;
+  notSubmitted = 0;
+  own = 0;
+  lost = 0;
+  pending = 0;
+  unknown = 0;
+
+  month1Submitted = 0;
+  month2Submitted = 0;
+  month3Submitted = 0;
+  month4Submitted = 0;
+  month5Submitted = 0;
+  month6Submitted = 0;
+  month7Submitted = 0;
+  month8Submitted = 0;
+  month9Submitted = 0;
+  month10Submitted = 0;
+  month11Submitted = 0;
+  month12Submitted = 0;
+
+  month1NotSubmitted = 0;
+  month2NotSubmitted = 0;
+  month3NotSubmitted = 0;
+  month4NotSubmitted = 0;
+  month5NotSubmitted = 0;
+  month6NotSubmitted = 0;
+  month7NotSubmitted = 0;
+  month8NotSubmitted = 0;
+  month9NotSubmitted = 0;
+  month10NotSubmitted = 0;
+  month11NotSubmitted = 0;
+  month12NotSubmitted = 0;
 
   @ViewChild('chartContainer', { read: ViewContainerRef, static: true })
   chartContainer!: ViewContainerRef;
+
+  @ViewChild('chartByClientContainer', { read: ViewContainerRef, static: true })
+  chartByClientContainer!: ViewContainerRef;
 
   isBrowser: boolean;
   isContainBidTrackerUrl = false;
 
   pieChartOptions: PieChartOptions = {
-    series: [0, 0, 0],
+    series: [0, 0, 0, 0, 0, 0],
     chart: {
       width: 380,
       type: 'pie',
     },
-    labels: ['Submissions', 'Won', 'Pending'],
+    labels: ['Submitted', 'Not Submitted', 'Won', 'Lost', 'Pending', 'Unknown'],
     dataLabels: {
       enabled: true,
       formatter: (val, opts) => {
@@ -116,15 +154,14 @@ export class DashboardUiComponent implements OnInit {
 
   barChartOptions: BarChartOptions = {
     series: [
-      {
-        name: 'Submited',
-        data: [44, 55, 41, 67, 22, 43],
-      },
-      {
-        name: 'Not Submited',
-        data: [13, 23, 20, 8, 13, 27],
-      }
-    ],
+        {  name: 'Submited',
+           data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        },
+        {
+           name: 'Not Submited',
+           data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        }
+      ],
     chart: {
       type: 'bar',
       height: 350,
@@ -141,12 +178,18 @@ export class DashboardUiComponent implements OnInit {
     xaxis: {
       type: 'category',
       categories: [
-        '01/2025',
-        '02/2025',
-        '03/2025',
-        '04/2025',
-        '05/2025',
-        '06/2025',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
       ],
     },
     legend: {
@@ -187,8 +230,14 @@ export class DashboardUiComponent implements OnInit {
     const after21 = new Date(today);
     after21.setDate(today.getDate() + 21);
 
+    // Raw values in yyyy-MM-dd for date input
+    this.fromDateRaw = before7.toISOString().split('T')[0];
+    this.toDateRaw = after21.toISOString().split('T')[0];
+
+    // Display values in formatted style
     this.fromDate = formatDate(before7, 'EEE, MMM d, y', 'en-US');
     this.toDate = formatDate(after21, 'EEE, MMM d, y', 'en-US');
+
   }
 
   ngOnInit() {
@@ -196,90 +245,241 @@ export class DashboardUiComponent implements OnInit {
 
     this.dataService.getBidTrackerData().subscribe({
       next: (r) => {
+        if (!this.isContainBidTrackerUrl) {
+          this.showReport();
+        }else {
         this.allSpradSheetData = r;
         this.updatePaginatedData();
         this.countSubmission();
-        if (!this.isContainBidTrackerUrl) {
-          this.showReport();
         }
+       
       },
       error: (err) => console.error(err),
     });
+  }
 
-    if (this.isBrowser) {
-      import('../pie-chart-component/pie-chart-component.component').then(
+  showReport() {
+  if (!this.fromDateRaw || !this.toDateRaw) return;
+
+  // Convert raw date strings to Date objects
+  this.fromDate = this.formatDateToISO(this.fromDateRaw);
+  this.toDate = this.formatDateToISO(this.toDateRaw);
+ 
+  this.dataService.getSpradeSheetDataByDate(this.fromDate, this.toDate).subscribe({
+    next: (r) => {
+      this.allSpradSheetData = r;
+      this.updatePaginatedData();
+      this.countSubmission();
+     },
+      error: (err) => console.error(err),
+    });
+
+  }
+
+  totalSumary: any;
+  allData: SubmissionData[] = [];
+  monthList: string[] = [];
+  
+  countSubmission() {
+    this.submitted = 0;
+    this.notSubmitted = 0;
+    this.own = 0;
+    this.lost = 0;
+    this.pending = 0;
+    this.unknown = 0;
+
+    this.dataService.getTotalSamary().subscribe({
+    next: (r) => {
+      this.totalSumary = r;
+      console.log(this.totalSumary);
+      this.notSubmitted = this.totalSumary[0].total;
+      this.submitted = this.totalSumary[1].total;
+      this.lost = this.totalSumary[2].total;
+      this.pending = this.totalSumary[3].total;
+      this.unknown = this.totalSumary[4].total;
+      this.own = this.totalSumary[5].total;
+      console.log('Submitted:', this.submitted);
+      console.log('Not Submitted:', this.notSubmitted);
+      console.log('Lost:', this.lost);
+      console.log('Pending:', this.pending);
+      console.log('Unknown:', this.unknown);
+      console.log('Own:', this.own);
+      // Update pie chart data
+      this.pieChartOptions.series = [
+        this.submitted,
+        this.notSubmitted,
+        this.own,
+        this.lost,
+        this.pending,
+        this.unknown
+      ];
+     },
+      error: (err) => console.error(err),
+    });
+
+    this.month1Submitted = 0;
+    this.month2Submitted = 0;
+    this.month3Submitted = 0;
+    this.month4Submitted = 0;
+    this.month5Submitted = 0;
+    this.month6Submitted = 0;
+    this.month7Submitted = 0;
+    this.month8Submitted = 0;
+    this.month9Submitted = 0;
+    this.month10Submitted = 0;
+    this.month11Submitted = 0;
+    this.month12Submitted = 0;
+    
+    this.month1NotSubmitted = 0;
+    this.month2NotSubmitted = 0;
+    this.month3NotSubmitted = 0;
+    this.month4NotSubmitted = 0;
+    this.month5NotSubmitted = 0;
+    this.month6NotSubmitted = 0;
+    this.month7NotSubmitted = 0;
+    this.month8NotSubmitted = 0;
+    this.month9NotSubmitted = 0;
+    this.month10NotSubmitted = 0;
+    this.month11NotSubmitted = 0;
+    this.month12NotSubmitted = 0;
+
+
+    this.dataService.getSubmitionSamary().subscribe({
+    next: (r) => {
+      console.log('Submission Summary:', r);
+      this.month1NotSubmitted = r[0].total;
+      this.month1Submitted = r[1].total;
+      this.month2NotSubmitted = r[2].total;
+      this.month2Submitted = r[3].total;
+      this.month3NotSubmitted = r[4].total;
+      this.month3Submitted = r[5].total;
+      this.month4NotSubmitted = r[6].total;
+      this.month4Submitted = r[7].total;
+      this.month5NotSubmitted = r[8].total;
+      this.month5Submitted = r[9].total;
+      this.month6NotSubmitted = r[10].total;
+      this.month6Submitted = r[11].total;
+      this.month7NotSubmitted = r[12].total;
+      this.month7Submitted = r[13].total;
+      this.month8NotSubmitted = r[14].total;
+      this.month8Submitted = r[15].total;
+      this.month9NotSubmitted = r[16].total;
+      this.month9Submitted = r[17].total;
+      this.month10NotSubmitted = r[18].total;
+      this.month10Submitted = r[19].total;
+      this.month11NotSubmitted = r[20].total;
+      this.month11Submitted = r[21].total;
+      this.month12NotSubmitted = r[22].total;
+      this.month12Submitted = r[23].total;
+
+     this.allData = r;
+
+      const filtered: SubmissionData[] = this.allData.filter((_, index: number) => index % 2 === 0);
+
+      console.log(filtered);
+      
+
+      const months: string[] = filtered.map(item => item.month);
+
+      this.monthList = months;
+      console.log('Months:', this.monthList);
+
+      console.log('Month 1 Submitted:', r[0]);
+      console.log('Month 1 Not Submitted:', this.month1NotSubmitted);
+      this.barChartOptions.series[0].data = [
+        this.month1Submitted,
+        this.month2Submitted,
+        this.month3Submitted,
+        this.month4Submitted,
+        this.month5Submitted,
+        this.month6Submitted,
+        this.month7Submitted,
+        this.month8Submitted,
+        this.month9Submitted,
+        this.month10Submitted,
+        this.month11Submitted,
+        this.month12Submitted
+      ];
+
+      this.barChartOptions.series[1].data = [
+        this.month1NotSubmitted,
+        this.month2NotSubmitted,
+        this.month3NotSubmitted,
+        this.month4NotSubmitted,
+        this.month5NotSubmitted,
+        this.month6NotSubmitted,
+        this.month7NotSubmitted,
+        this.month8NotSubmitted,
+        this.month9NotSubmitted,
+        this.month10NotSubmitted,
+        this.month11NotSubmitted,
+        this.month12NotSubmitted
+      ];
+
+
+      this.barChartOptions.xaxis.categories = this.monthList;
+
+   if (this.isBrowser) {
+        this.createPiChart();
+        this.createBarChart();
+    }
+
+     },
+      error: (err) => console.error(err),
+    });
+
+    
+  }
+
+  createPiChart() {
+    
+    this.chartContainer.clear();
+    this.chartByClientContainer.clear();
+
+     import('../pie-chart-component/pie-chart-component.component').then(
         ({ PieChartComponent }) => {
           const pieRef = this.chartContainer.createComponent(PieChartComponent);
           pieRef.setInput('chartOptions', this.pieChartOptions);
-        }
+        }  
       );
 
+      // chartb by client
+      import('../pie-chart-component/pie-chart-component.component').then(
+        ({ PieChartComponent }) => {
+          const pieRef = this.chartByClientContainer.createComponent(PieChartComponent);
+          pieRef.setInput('chartOptions', this.pieChartOptions);
+        }  
+      );
+  }
+
+  createBarChart(){
+
+    this.chartContainer.clear();
+    this.chartByClientContainer.clear();
+
+
+      // only render chart now
       import('../../bar-chart-component/bar-chart-component.component').then(
         ({ BarChartComponentComponent }) => {
           const barRef = this.chartContainer.createComponent(BarChartComponentComponent);
           barRef.setInput('chartOptions', this.barChartOptions);
         }
       );
-    }
-  }
 
-  showReport() {
-    const from = new Date(this.fromDate);
-    const to = new Date(this.toDate);
-
-    let count = 1;
-    let skipped = 0;
-    const filteredData = [];
-
-    for (const item of this.allSpradSheetData) {
-      if (item.submissionDate) {
-        const subDate = new Date(item.submissionDate);
-        if (subDate >= from && subDate <= to) {
-          filteredData.push(item);
-          console.log(`${count++}.`, item.submissionDate, item);
-        } else {
-          skipped++;
+            // only render chart now
+      import('../../bar-chart-component/bar-chart-component.component').then(
+        ({ BarChartComponentComponent }) => {
+          const barRef = this.chartByClientContainer.createComponent(BarChartComponentComponent);
+          barRef.setInput('chartOptions', this.barChartOptions);
         }
-      } else {
-        skipped++;
-      }
-    }
-
-    this.allSpradSheetData = filteredData;
-    this.updatePaginatedData();
-
-    console.log(`Skipped: ${skipped}`);
+      );
   }
 
-  countSubmission() {
-    this.Submissions = 0;
-    this.Won = 0;
-    this.Pending = 0;
-
-    for (const item of this.allSpradSheetData) {
-      if (
-        item.submission &&
-        item.submission.toLowerCase().includes('submitted')
-      ) {
-        this.Submissions++;
-      }
-
-      if (item.result && item.result.toLowerCase().includes('won')) {
-        this.Won++;
-      }
-
-      if (item.result && item.result.toLowerCase().includes('pending')) {
-        this.Pending++;
-      }
-    }
-
-    this.pieChartOptions.series = [this.Submissions, this.Won, this.Pending];
-
-    console.log(`✅ Total Submissions: ${this.Submissions}`);
-    console.log(`🏆 Total Wins: ${this.Won}`);
-    console.log(`⏳ Total Pending: ${this.Pending}`);
+  showDetails() {
+    this.chartContainer.clear();
+    this.chartByClientContainer.clear();
   }
-
+      
   updatePaginatedData() {
     const startIndex = (this.currentPage - 1) * this.pageSize;
     const endIndex = startIndex + this.pageSize;
@@ -297,6 +497,26 @@ export class DashboardUiComponent implements OnInit {
   }
 
   goBack() {
+    this.createPiChart();
+    this.createBarChart();
     this.selectedItem = null;
+  }
+
+  updateFormattedDates() {
+  if (this.fromDateRaw) {
+    this.fromDate = formatDate(this.fromDateRaw, 'EEE, MMM d, y', 'en-US');
+  }
+  if (this.toDateRaw) {
+    this.toDate = formatDate(this.toDateRaw, 'EEE, MMM d, y', 'en-US');
+  }
+  }
+
+  formatDateToISO(date: string | Date): string {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+  const day = String(d.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
   }
 }

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BidTracker } from './interface/bid-tracker';
+import { SubmissionData } from './interface/submission-data';
 
 @Injectable({
   providedIn: 'root'
@@ -22,10 +23,23 @@ export class DataServiceService {
    return this.http.get<BidTracker[]>(this.baseUrl + this.bidTrackerUrl);
   }
 
-  public sheetDataUrl = "/bid-tracker-sheets/import";
+  public sheetDataUrl = "/bid-tracker-sheets";
 
   public getSpradeSheetData(){
-   return this.http.post(this.baseUrl + this.sheetDataUrl, {});
+   return this.http.post(this.baseUrl + this.sheetDataUrl + "/import", {});
   }
+
+  public getSpradeSheetDataByDate(fromDate: any, toDate: any){
+   return this.http.get<BidTracker[]>(this.baseUrl + this.sheetDataUrl + "/get-by-date?fromDate=" + fromDate + "&toDate=" + toDate);
+  }
+
+  public getTotalSamary(){
+    return this.http.get<any>(this.baseUrl + this.sheetDataUrl + "/total-summary");
+  }
+
+ public getSubmitionSamary(){
+    return this.http.get<any>(this.baseUrl + this.sheetDataUrl + "/monthly-submission-summary");
+  }
+
   
 }

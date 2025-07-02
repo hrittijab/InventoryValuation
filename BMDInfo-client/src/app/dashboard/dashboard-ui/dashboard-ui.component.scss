@@ -64,7 +64,6 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
 }
 
 .table-and-chart-holder{
@@ -166,8 +165,10 @@ table.table th {
 
 .pagination {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  justify-content: start;
   gap: 12px;
+  max-width: 95%;
 }
 
 .page-item {
@@ -273,9 +274,6 @@ button[disabled] {
   cursor: default;
 }
 
-.pagination{
- padding: 5px 30px;
-}
 
 .goBackContainer {
   display: flex;
@@ -308,7 +306,15 @@ button[disabled] {
 .goBack i {
   font-size: 16px;
 }
-.chart{
+.chart-by-client-container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 20px;
+}
+.chart, .chart-by-client{
   display: flex;
   align-items: center;
   justify-content: space-around;

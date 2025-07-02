@@ -1,13 +1,30 @@
 <div class="contaner">
 <div class="table-and-chart-holder">
-<div class="table-container" *ngIf="!selectedItem" >
-  <div class="date-filter p-4">
-   <p>Showing Report of: </p> 
-  <label><strong>From Date:</strong> {{ fromDate }}</label><br />
-  <label><strong>To Date:</strong> {{ toDate }}</label><br /><br />
-  
-  <!-- <button (click)="showReport();">Show Report</button> -->
-</div>
+<div class="table-container" *ngIf="!selectedItem">
+  <div class="date-filter p-4" *ngIf="!isContainBidTrackerUrl">
+    <p><strong>Showing Report of:</strong></p>
+
+    <!-- FROM DATE PICKER -->
+    <label><strong>From Date:</strong></label>
+    <input
+      type="date"
+      [(ngModel)]="fromDateRaw"
+      (change)="updateFormattedDates()"
+    />
+    <span>{{ fromDate }}</span>
+    <br />
+
+    <!-- TO DATE PICKER -->
+    <label><strong>To Date:</strong></label>
+    <input
+      type="date"
+      [(ngModel)]="toDateRaw"
+      (change)="updateFormattedDates()"
+    />
+    <span>{{ toDate }}</span>
+
+    <button class="btn btn-primary" (click)="showReport()">Show Report</button>
+  </div>
 <table class="table table-bordered table-hover">
   <thead>
     <tr>
@@ -16,7 +33,6 @@
       <th scope="col">stage</th>
       <th scope="col">published</th>
       <th scope="col">submission</th>
-      <th scope="col">security-amount</th>
       <th scope="col">Expiry Date</th>
       <th scope="col">submission</th>
       <th scope="col">result</th>
@@ -30,22 +46,19 @@
       <td>{{ i.stage }}</td>
       <td>{{ i.published }}</td>
       <td>{{ i.submissionDate }}</td>
-      <td>{{ i.securityAmount }}</td>
       <td>{{ i.expiryDate }}</td>
       <td>{{ i.submission }}</td>
       <td>{{ i.result }}</td>
       <td>
        <button 
         class="btn btn-sm btn-secondary ml-2"
-        (click)="selectedItem = i"
-      >
-        Show Details
+        (click)="selectedItem = i; showDetails()">
+       <i class="far fa-eye"></i>
       </button>
       </td>
     </tr>
   </tbody>
 </table>
-
 <!-- Pagination Controls -->
 <div class="mt-3 pagination">
   <button
@@ -71,7 +84,18 @@
 </div>
 </div>
 
+<div class="chart-container">
 <div class="chart">
 <ng-template #chartContainer></ng-template>
 </div>
+<br>
+<br>
+<div class="chart-by-client-container">
+   <h3 *ngIf="!selectedItem">Chart by Client</h3>
+   <div class="chart-by-client">
+  <ng-template #chartByClientContainer></ng-template>
 </div>
+</div>
+</div>
+</div>
+

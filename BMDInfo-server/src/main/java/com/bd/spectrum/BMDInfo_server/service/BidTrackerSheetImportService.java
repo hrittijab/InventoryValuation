@@ -1,5 +1,7 @@
 package com.bd.spectrum.BMDInfo_server.service;
 
+import com.bd.spectrum.BMDInfo_server.dto.CategoryCountDTO;
+import com.bd.spectrum.BMDInfo_server.dto.MonthlySubmissionDTO;
 import com.bd.spectrum.BMDInfo_server.model.BidTracker;
 import com.bd.spectrum.BMDInfo_server.repository.BidTrackerRepository;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
@@ -17,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Service
 public class BidTrackerSheetImportService {
@@ -146,6 +149,29 @@ public class BidTrackerSheetImportService {
 
     public void deleteAll(){
         bidTrackerRepository.deleteAll();
+    }
+
+    public List<BidTracker> getByDateRange(LocalDate fromDate, LocalDate toDate){
+       return bidTrackerRepository.findBySubmissionDateBetween(fromDate, toDate);
+    }
+
+    public List<CategoryCountDTO> getCategoryStats() {
+        return bidTrackerRepository.getSubmissionAndResultStats().stream()
+                .map(row -> new CategoryCountDTO(
+                        (String) row[0],
+                        ((Number) row[1]).longValue()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    public List<MonthlySubmissionDTO> getLast12MonthsSubmissionSummary() {
+        return bidTrackerRepository.getMonthlySubmissionCounts().stream()
+                .map(row -> new MonthlySubmissionDTO(
+                        (String) row[0],
+                        (String) row[1],
+                        ((Number) row[2]).longValue()
+                ))
+                .collect(Collectors.toList());
     }
 
 }
