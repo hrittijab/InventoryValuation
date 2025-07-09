@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 @Entity
 @Data
@@ -16,8 +17,8 @@ import java.time.LocalTime;
 @AllArgsConstructor
 public class BidTracker {
     @Id
-    @GeneratedValue
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     private String client;
     @Column(name = "description", length = 1000)

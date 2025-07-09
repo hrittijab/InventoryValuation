@@ -17,7 +17,9 @@ import { DataServiceService } from '../data-service.service';
 })
 export class DashboardComponent {
 
-  
+  lastFetchDataAt: any;
+  isLoaderVisible = false;
+
   constructor(
     private router: Router,
     private dataService: DataServiceService,
@@ -26,6 +28,17 @@ export class DashboardComponent {
   storedValue!: any;
   ngOnInit(): void {
     this.storedValue = sessionStorage.getItem('admin');
+
+    this.dataService.getLastFetchedDataAt().subscribe({
+      next: (data) => {
+        this.lastFetchDataAt = data;
+      },
+      error: (err) => {
+        console.error('Error fetching last fetched data at:', err);
+        this.lastFetchDataAt = 'N/A';
+      }
+    });
+
   }
 
   searchProducts(data: NgForm){
@@ -39,6 +52,7 @@ export class DashboardComponent {
   }
 
   fetchData() {
+    this.isLoaderVisible = true; // Show the loader
       this.dataService.getSpradeSheetData().subscribe({
       next: (r) => {
       
@@ -46,9 +60,11 @@ export class DashboardComponent {
       error: (err) => {
         if (err.status === 200) {
             alert('Data fetched successfully');
+            this.isLoaderVisible = false; // Hide the loader
             window.location.reload();
         }else {
         alert('Error fetching data: ' + err.message);
+        this.isLoaderVisible = false; // Hide the loader
         console.error(err);
         }
       } 

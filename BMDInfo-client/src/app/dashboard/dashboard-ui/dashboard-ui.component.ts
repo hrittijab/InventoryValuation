@@ -125,7 +125,7 @@ export class DashboardUiComponent implements OnInit {
       width: 380,
       type: 'pie',
     },
-    labels: ['Submitted', 'Not Submitted', 'Won', 'Lost', 'Pending', 'Unknown'],
+    labels: ['Bid Submitted', 'Not Submitted', 'Won', 'Lost', 'Result Pending', 'Unknown'],
     dataLabels: {
       enabled: true,
       formatter: (val, opts) => {
@@ -165,6 +165,7 @@ export class DashboardUiComponent implements OnInit {
     chart: {
       type: 'bar',
       height: 350,
+      width: 400,
       stacked: true,
       toolbar: { show: false },
       zoom: { enabled: true },
@@ -191,6 +192,58 @@ export class DashboardUiComponent implements OnInit {
         '',
         '',
       ],
+    },
+    legend: {
+      position: 'right',
+      offsetY: 40,
+    },
+    fill: {
+      opacity: 1,
+    },
+    dataLabels: {
+      enabled: false,
+    },
+    responsive: [
+      {
+        breakpoint: 480,
+        options: {
+          legend: {
+            position: 'bottom',
+            offsetX: -10,
+            offsetY: 0,
+          },
+        },
+      },
+    ],
+  };
+
+  barChartOptionsClient: BarChartOptions = {
+    series: [
+        {  name: 'Submited',
+           data: [0],
+        },
+        {
+           name: 'Not Submited',
+           data: [0],
+        }
+      ],
+    chart: {
+      type: 'bar',
+      height: 500,
+      width: 1250,
+      stacked: true,
+      toolbar: { show: false },
+      zoom: { enabled: true },
+    },
+    colors: ['#1E90FF', '#DC3545'], // <-- CUSTOM COLORS
+    plotOptions: {
+      bar: {
+        horizontal: false,
+      },
+    },
+    xaxis: {
+      type: 'category',
+      categories: [],
     },
     legend: {
       position: 'right',
@@ -288,34 +341,54 @@ export class DashboardUiComponent implements OnInit {
     this.pending = 0;
     this.unknown = 0;
 
-    this.dataService.getTotalSamary().subscribe({
-    next: (r) => {
-      this.totalSumary = r;
-      console.log(this.totalSumary);
-      this.notSubmitted = this.totalSumary[0].total;
-      this.submitted = this.totalSumary[1].total;
-      this.lost = this.totalSumary[2].total;
-      this.pending = this.totalSumary[3].total;
-      this.unknown = this.totalSumary[4].total;
-      this.own = this.totalSumary[5].total;
-      console.log('Submitted:', this.submitted);
-      console.log('Not Submitted:', this.notSubmitted);
-      console.log('Lost:', this.lost);
-      console.log('Pending:', this.pending);
-      console.log('Unknown:', this.unknown);
-      console.log('Own:', this.own);
-      // Update pie chart data
-      this.pieChartOptions.series = [
-        this.submitted,
-        this.notSubmitted,
-        this.own,
-        this.lost,
-        this.pending,
-        this.unknown
+  if (this.isContainBidTrackerUrl) {
+      this.dataService.getTotalSamary().subscribe({
+      next: (r) => {
+        this.totalSumary = r;
+        this.notSubmitted = this.totalSumary[0].total;
+        this.submitted = this.totalSumary[1].total;
+        this.lost = this.totalSumary[2].total;
+        this.pending = this.totalSumary[3].total;
+        this.unknown = this.totalSumary[4].total;
+        this.own = this.totalSumary[5].total;
+        // Update pie chart data
+        this.pieChartOptions.series = [
+          this.submitted,
+          this.notSubmitted,
+          this.own,
+          this.lost,
+          this.pending,
+          this.unknown
       ];
      },
       error: (err) => console.error(err),
     });
+  }else{
+        this.dataService.getTotalSamaryByDateRange(this.fromDateRaw, this.toDateRaw).subscribe({
+        next: (r) => {
+          console.log(r);
+          this.totalSumary = r;
+          this.notSubmitted = this.totalSumary[0].total;
+          this.submitted = this.totalSumary[1].total;
+          this.lost = this.totalSumary[2].total;
+          this.pending = this.totalSumary[3].total;
+          this.unknown = this.totalSumary[4].total;
+          this.own = this.totalSumary[5].total;
+          // Update pie chart data
+          this.pieChartOptions.series = [
+            this.submitted,
+            this.notSubmitted,
+            this.own,
+            this.lost,
+            this.pending,
+            this.unknown
+        ];
+      },
+        error: (err) => console.error(err),
+      });
+  }
+
+
 
     this.month1Submitted = 0;
     this.month2Submitted = 0;
@@ -346,7 +419,6 @@ export class DashboardUiComponent implements OnInit {
 
     this.dataService.getSubmitionSamary().subscribe({
     next: (r) => {
-      console.log('Submission Summary:', r);
       this.month1NotSubmitted = r[0].total;
       this.month1Submitted = r[1].total;
       this.month2NotSubmitted = r[2].total;
@@ -376,16 +448,10 @@ export class DashboardUiComponent implements OnInit {
 
       const filtered: SubmissionData[] = this.allData.filter((_, index: number) => index % 2 === 0);
 
-      console.log(filtered);
-      
-
       const months: string[] = filtered.map(item => item.month);
 
       this.monthList = months;
-      console.log('Months:', this.monthList);
 
-      console.log('Month 1 Submitted:', r[0]);
-      console.log('Month 1 Not Submitted:', this.month1NotSubmitted);
       this.barChartOptions.series[0].data = [
         this.month1Submitted,
         this.month2Submitted,
@@ -428,25 +494,22 @@ export class DashboardUiComponent implements OnInit {
       error: (err) => console.error(err),
     });
 
+    if(this.isContainBidTrackerUrl){
+       this.getClientSubmitionSamary();
+    }
+    else {
+      this.getClientSubmitionSamaryByDate(this.fromDateRaw, this.toDateRaw);
+    }
     
   }
 
   createPiChart() {
     
     this.chartContainer.clear();
-    this.chartByClientContainer.clear();
 
      import('../pie-chart-component/pie-chart-component.component').then(
         ({ PieChartComponent }) => {
           const pieRef = this.chartContainer.createComponent(PieChartComponent);
-          pieRef.setInput('chartOptions', this.pieChartOptions);
-        }  
-      );
-
-      // chartb by client
-      import('../pie-chart-component/pie-chart-component.component').then(
-        ({ PieChartComponent }) => {
-          const pieRef = this.chartByClientContainer.createComponent(PieChartComponent);
           pieRef.setInput('chartOptions', this.pieChartOptions);
         }  
       );
@@ -455,8 +518,6 @@ export class DashboardUiComponent implements OnInit {
   createBarChart(){
 
     this.chartContainer.clear();
-    this.chartByClientContainer.clear();
-
 
       // only render chart now
       import('../../bar-chart-component/bar-chart-component.component').then(
@@ -466,15 +527,20 @@ export class DashboardUiComponent implements OnInit {
         }
       );
 
-            // only render chart now
+  }
+
+  createBarChartByClient() {
+    this.chartByClientContainer.clear();
+
+          // only render chart now
       import('../../bar-chart-component/bar-chart-component.component').then(
         ({ BarChartComponentComponent }) => {
           const barRef = this.chartByClientContainer.createComponent(BarChartComponentComponent);
-          barRef.setInput('chartOptions', this.barChartOptions);
+          barRef.setInput('chartOptions', this.barChartOptionsClient);
         }
       );
   }
-
+    
   showDetails() {
     this.chartContainer.clear();
     this.chartByClientContainer.clear();
@@ -499,6 +565,7 @@ export class DashboardUiComponent implements OnInit {
   goBack() {
     this.createPiChart();
     this.createBarChart();
+    this.createBarChartByClient();
     this.selectedItem = null;
   }
 
@@ -519,4 +586,60 @@ export class DashboardUiComponent implements OnInit {
 
   return `${year}-${month}-${day}`;
   }
+
+// Client Submission Summary
+clientSubmissionSummary: any;
+
+getClientSubmitionSamary() {
+  this.dataService.getClientSubmitionSamary().subscribe({
+    next: (r) => {
+      console.log('Client Submission Summary:', r);
+      this.clientSubmissionSummary = r;
+
+      // Map data from API
+      const clients: string[] = r.map((item: any) => item.client);
+      const submittedCounts: number[] = r.map((item: any) => item.submittedCount);
+      const notSubmittedCounts: number[] = r.map((item: any) => item.notSubmittedCount);
+
+      // Inject into chart options
+      this.barChartOptionsClient.series[0].data = submittedCounts;
+      this.barChartOptionsClient.series[1].data = notSubmittedCounts;
+      this.barChartOptionsClient.xaxis.categories = clients;
+
+      // Only render chart if in browser
+      if (this.isBrowser) {
+        this.createBarChartByClient();
+      }
+    },
+    error: (err) => console.error(err),
+  });
+}
+
+getClientSubmitionSamaryByDate(from: any, to: any) {
+  this.dataService.getClientSubmitionSamaryByDate(from, to).subscribe({
+    next: (r) => {
+      console.log('Client Submission Summary:', r);
+      this.clientSubmissionSummary = r;
+
+      // Map data from API
+      const clients: string[] = r.map((item: any) => item.client);
+      const submittedCounts: number[] = r.map((item: any) => item.submittedCount);
+      const notSubmittedCounts: number[] = r.map((item: any) => item.notSubmittedCount);
+
+      // Inject into chart options
+      this.barChartOptionsClient.series[0].data = submittedCounts;
+      this.barChartOptionsClient.series[1].data = notSubmittedCounts;
+      this.barChartOptionsClient.xaxis.categories = clients;
+      // this.barChartOptionsClient.chart.height = clients.length * 150; // Adjust height based on number of clients
+      // this.barChartOptionsClient.chart.width = clients.length * 100; // Adjust width based on number of clients
+      // console.log(clients);
+      // Only render chart if in browser
+      if (this.isBrowser) {
+        this.createBarChartByClient();
+      }
+    },
+    error: (err) => console.error(err),
+  });
+}
+
 }

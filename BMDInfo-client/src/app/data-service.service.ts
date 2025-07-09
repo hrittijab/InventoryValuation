@@ -37,9 +37,24 @@ export class DataServiceService {
     return this.http.get<any>(this.baseUrl + this.sheetDataUrl + "/total-summary");
   }
 
+  public getTotalSamaryByDateRange(from: any, to: any){
+    return this.http.get<any>(this.baseUrl + this.sheetDataUrl + "/total-summary-by-date?from=" + from + "&to=" + to);
+  }
+
  public getSubmitionSamary(){
     return this.http.get<any>(this.baseUrl + this.sheetDataUrl + "/monthly-submission-summary");
   }
 
+ public getClientSubmitionSamary(){
+    return this.http.get<any>(this.baseUrl + this.sheetDataUrl + "/client-submission-summary");
+  }
+
+  public getClientSubmitionSamaryByDate(from: any, to: any){
+   return this.http.get<BidTracker[]>(this.baseUrl + this.sheetDataUrl + "/client-submission-summary-by-date-range?from=" + from + "&to=" + to);
+  }
+
+  public getLastFetchedDataAt() {
+    return this.http.get<string>(this.baseUrl + "/last-fetch");
+  }
   
 }

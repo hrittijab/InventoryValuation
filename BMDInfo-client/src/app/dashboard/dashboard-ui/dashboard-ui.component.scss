@@ -5,24 +5,6 @@
   transition: all 0.3s;
 }
 
-@media (max-width: 1199px) {
-  #main {
-    padding: 20px;
-  }
-}
-@media (min-width: 1200px) {
-  #main,
-  #footer {
-    margin-left: 300px;
-  }
-}
-@media (min-width: 1200px) {
-  .toggle-sidebar #main,
-  .toggle-sidebar #footer {
-    margin-left: 0;
-  }
-}
-
 #general-search-container form {
   background: #f8f9fa;
   padding: 15px 20px;
@@ -263,7 +245,7 @@ table.table th {
 
 .table tbody tr:hover {
   background-color: #d0e3ff;
-  color: #c01c1c;
+  color: #383bb0;
   cursor: pointer;
 }
 
@@ -319,4 +301,24 @@ button[disabled] {
   align-items: center;
   justify-content: space-around;
   width: 100%;
+}
+
+@media (max-width: 767.98px) {
+ 
+  .contaner{
+    width: 100%;
+    // overflow-x: hidden;
+  }
+  .table-and-chart-holder{
+    margin-left: 250px;
+  }
+
+
+  .chart{
+   display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
 }

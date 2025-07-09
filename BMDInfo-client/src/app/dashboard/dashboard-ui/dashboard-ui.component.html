@@ -11,7 +11,6 @@
       [(ngModel)]="fromDateRaw"
       (change)="updateFormattedDates()"
     />
-    <span>{{ fromDate }}</span>
     <br />
 
     <!-- TO DATE PICKER -->
@@ -21,8 +20,6 @@
       [(ngModel)]="toDateRaw"
       (change)="updateFormattedDates()"
     />
-    <span>{{ toDate }}</span>
-
     <button class="btn btn-primary" (click)="showReport()">Show Report</button>
   </div>
 <table class="table table-bordered table-hover">
@@ -47,7 +44,10 @@
       <td>{{ i.published }}</td>
       <td>{{ i.submissionDate }}</td>
       <td>{{ i.expiryDate }}</td>
-      <td>{{ i.submission }}</td>
+      <td [ngStyle]="{
+            'color': i.submission === 'Not Submitted' ? 'red' : 
+                    (i.submission === 'Submitted' ? 'green' : 'black'),
+          }">{{ i.submission }}</td>
       <td>{{ i.result }}</td>
       <td>
        <button 
@@ -91,7 +91,7 @@
 <br>
 <br>
 <div class="chart-by-client-container">
-   <h3 *ngIf="!selectedItem">Chart by Client</h3>
+   <h3 *ngIf="!selectedItem">Summary By Client</h3>
    <div class="chart-by-client">
   <ng-template #chartByClientContainer></ng-template>
 </div>
