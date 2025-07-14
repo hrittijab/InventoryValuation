@@ -650,7 +650,7 @@ async downloadPDF(): Promise<void> {
   const html2pdf = await import('html2pdf.js');
 
   const options = {
-    margin: 0.8,
+    margin: 0.5,
     filename: 'bid-tracker-details of ' + this.selectedItem?.client + '.pdf',
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2 },
