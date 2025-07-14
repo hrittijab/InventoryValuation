@@ -27,6 +27,11 @@ export class DashboardComponent {
 
   storedValue!: any;
   ngOnInit(): void {
+    // Check if the user is logged in as admin
+    if(!sessionStorage.getItem('admin')) {
+      this.router.navigate(['/login']);
+      return;
+    }
     this.storedValue = sessionStorage.getItem('admin');
 
     this.dataService.getLastFetchedDataAt().subscribe({

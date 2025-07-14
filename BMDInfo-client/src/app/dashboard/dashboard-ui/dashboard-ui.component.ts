@@ -16,7 +16,8 @@ import {
   ViewContainerRef,
   Inject,
   PLATFORM_ID,
-  ViewChild
+  ViewChild,
+  ElementRef
 } from '@angular/core';
 
 import {
@@ -34,6 +35,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { SubmissionData } from '../../interface/submission-data';
 
+import * as html2pdf from 'html2pdf.js';
 
 export type PieChartOptions = {
   series: ApexNonAxisChartSeries;
@@ -641,5 +643,25 @@ getClientSubmitionSamaryByDate(from: any, to: any) {
     error: (err) => console.error(err),
   });
 }
+
+ @ViewChild('pdfContent', { static: false }) pdfContent!: ElementRef;
+
+async downloadPDF(): Promise<void> {
+  const html2pdf = await import('html2pdf.js');
+
+  const options = {
+    margin: 0.8,
+    filename: 'bid-tracker-details of ' + this.selectedItem?.client + '.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf.default()
+    .from(this.pdfContent.nativeElement)
+    .set(options)
+    .save();
+}
+
 
 }

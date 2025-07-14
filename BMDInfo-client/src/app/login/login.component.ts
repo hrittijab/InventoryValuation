@@ -20,7 +20,7 @@ export class LoginComponent {
 
   allUser = [
     {"userName": "admin"},
-    {"password": "admin"},
+    {"password": "@admin"},
   ];
 
   ngOnInit(): void {

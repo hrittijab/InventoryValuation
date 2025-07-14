@@ -72,17 +72,25 @@
 </div>
 </div>
 </div>
-<!-- Details View -->
-<app-bid-tracker-details-component 
-  *ngIf="selectedItem" 
-  [data]="selectedItem">
-</app-bid-tracker-details-component>
+<div #pdfContent>
+  <!-- Details View -->
+  <app-bid-tracker-details-component 
+    *ngIf="selectedItem" 
+    [data]="selectedItem">
+  </app-bid-tracker-details-component>
+</div>
 
+<div class="btn-container" *ngIf="selectedItem">
 <div class="goBackContainer">
-  <div *ngIf="selectedItem" class="goBack" (click)="goBack()">
+  <div class="goBack" (click)="goBack()">
   <i class="fa fa-arrow-left" aria-hidden="true"></i> Go Back
 </div>
 </div>
+<div id="btn" (click)="downloadPDF()">
+<i class="fa fa-download"></i> Download PDF
+</div> 
+</div>
+
 
 <div class="chart-container">
 <div class="chart">
