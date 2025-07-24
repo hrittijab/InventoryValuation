@@ -35,3 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+
+/BMDInfo-server/src/main/resources/credentials.json
+/bfg.jar
+/BMDInfo-server/src/main/resources/application.properties
+/src/main/resources/credentials.json
