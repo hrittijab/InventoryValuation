@@ -1,0 +1,8 @@
+﻿{
+    "name":  "Router",
+    "sku":  "RT123",
+    "location":  "Chittagong",
+    "quantity":  10,
+    "unitPrice":  2500,
+    "category":  "Networking"
+}

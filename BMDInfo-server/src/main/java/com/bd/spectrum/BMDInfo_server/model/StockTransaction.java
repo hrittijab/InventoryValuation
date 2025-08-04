@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -19,12 +19,22 @@ public class StockTransaction {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id", nullable = false)
     private InventoryItem item;
 
+    @Column(nullable = false)
     private Integer quantity;
+
+    @Column(nullable = false)
     private BigDecimal pricePerUnit;
-    private LocalDate date;
-    private String type; // "IN" or "OUT"
+
+    @Column(nullable = false)
+    private LocalDateTime date;
+
+    @Column(nullable = false)
+    private String type; 
+
+    @Column(nullable = false)
     private String location;
 }

@@ -7,13 +7,11 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.UUID;
-
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class InventoryItem {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -24,4 +22,7 @@ public class InventoryItem {
     private String location;
     private BigDecimal unitPrice;
     private Integer quantity;
+
+    @Version
+    private Long version;
 }
