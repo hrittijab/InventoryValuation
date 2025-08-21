@@ -1,0 +1,74 @@
+<h2 class="mb-3">Stock Movement Log</h2>
+
+<mat-card class="toolbar-card">
+  <div class="toolbar-container">
+
+    <!-- Search -->
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search (SKU / From / To / Action)</mat-label>
+      <input matInput #q (input)="applyFilter(q.value || '')" placeholder="Type to filter..." />
+      <button *ngIf="q.value" matSuffix mat-icon-button aria-label="Clear"
+              (click)="q.value=''; applyFilter('')">
+        <mat-icon>close</mat-icon>
+      </button>
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    <!-- Refresh -->
+    <button mat-stroked-button color="primary" (click)="load()">
+      <mat-icon>refresh</mat-icon>
+      Refresh
+    </button>
+  </div>
+</mat-card>
+
+<!-- Table -->
+<table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8" style="width: 100%; margin-top: 12px;">
+
+  <!-- Date -->
+  <ng-container matColumnDef="date">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+    <td mat-cell *matCellDef="let row">{{ row.date | date: 'medium' }}</td>
+  </ng-container>
+
+  <!-- SKU -->
+  <ng-container matColumnDef="sku">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>SKU</th>
+    <td mat-cell *matCellDef="let row">{{ row.item?.sku || '—' }}</td>
+  </ng-container>
+
+  <!-- Name -->
+  <ng-container matColumnDef="name">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+    <td mat-cell *matCellDef="let row">{{ row.item?.name || '—' }}</td>
+  </ng-container>
+
+  <!-- From -->
+  <ng-container matColumnDef="from">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>From</th>
+    <td mat-cell *matCellDef="let row">{{ row.fromLocation }}</td>
+  </ng-container>
+
+  <!-- To -->
+  <ng-container matColumnDef="to">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>To</th>
+    <td mat-cell *matCellDef="let row">{{ row.toLocation }}</td>
+  </ng-container>
+
+  <!-- Quantity -->
+  <ng-container matColumnDef="quantity">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>Qty</th>
+    <td mat-cell *matCellDef="let row">{{ row.quantity }}</td>
+  </ng-container>
+
+  <!-- Action -->
+  <ng-container matColumnDef="action">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
+    <td mat-cell *matCellDef="let row">{{ row.action }}</td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+</table>
+
+<mat-paginator [pageSize]="10" [pageSizeOptions]="[5,10,25,50]"></mat-paginator>

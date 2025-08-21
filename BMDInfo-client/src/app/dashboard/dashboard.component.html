@@ -1,107 +1,108 @@
 <!-- Spinner -->
- <div class="loader-container" *ngIf="isLoaderVisible">
- <div class="loader"></div>
- </div>
+<div class="loader-container" *ngIf="isLoaderVisible">
+  <div class="loader"></div>
+</div>
 
-<!-- Dashboard -->
-<div class="dashboard d-flex flex-column flex-lg-row h-lg-full bg-surface-secondary" *ngIf="storedValue">
-    <!-- Vertical Navbar -->
-    <nav class="navbar show navbar-vertical h-lg-screen navbar-expand-lg px-0 py-3 navbar-light bg-white border-bottom border-bottom-lg-0 border-end-lg" id="navbarVertical">
-        <div class="container-fluid">
-            <!-- Brand -->
-            <a class="navbar-brand py-lg-2 mb-lg-5 px-lg-6 me-0 d-none d-lg-block">
-            <img src="https://www.spectrum-bd.com/wp-content/uploads/2015/02/new_logo-1.png" alt="...">
-            </a>
+<!-- Dashboard wrapper -->
+<div class="dashboard d-flex flex-column flex-lg-row h-lg-full bg-surface-secondary">
+  <!-- Vertical Navbar -->
+  <nav class="navbar show navbar-vertical h-lg-screen navbar-expand-lg px-0 py-3 navbar-light bg-white border-bottom border-bottom-lg-0 border-end-lg" id="navbarVertical">
+    <div class="container-fluid">
+      <!-- Brand -->
+      <a class="navbar-brand py-lg-2 mb-lg-5 px-lg-6 me-0 d-none d-lg-block">
+        <img src="https://www.spectrum-bd.com/wp-content/uploads/2015/02/new_logo-1.png" alt="...">
+      </a>
 
-            <!-- User menu (mobile) -->
-            <div class="navbar-user d-lg-none">
-                <!-- Dropdown -->
-                <div class="dropdown">
-                    <!-- Toggle -->
-                    <a id="sidebarAvatar" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <div class="avatar-parent-child">
-                            <img alt="Image Placeholder" src="https://www.spectrum-bd.com/wp-content/uploads/2015/02/new_logo-1.png" class="avatar avatar- rounded-circle">
-                            <span class="avatar-child avatar-badge bg-success"></span>
-                        </div>
-                    </a>
-                    <!-- Menu -->
-                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="sidebarAvatar">
-                        <a class="dropdown-item">Profile</a>
-                        <hr class="dropdown-divider">
-                        <a (click)="logOut()"  class="dropdown-item">Logout</a>
-                    </div>
-                </div>
+      <!-- User menu (mobile) -->
+      <div class="navbar-user d-lg-none">
+        <div class="dropdown">
+          <a id="sidebarAvatar" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <div class="avatar-parent-child">
+              <img alt="Image Placeholder" src="https://www.spectrum-bd.com/wp-content/uploads/2015/02/new_logo-1.png" class="avatar avatar- rounded-circle">
+              <span class="avatar-child avatar-badge bg-success"></span>
             </div>
-            <!-- Collapse -->
-            <div class="navbar-collapse">
-                <!-- Navigation -->
-                <ul class="navbar-nav">
-
-                    <li routerLink="/dashboard/dashboard" class="nav-item">
-                        <a  class="nav-link">
-                            <i class="bi bi-house"></i> Dashboard
-                        </a>
-                    </li>
-
-                    <li routerLink="/dashboard/bid-tracker" class="nav-item">
-                        <a  class="nav-link">
-                            <i class="bi bi-house"></i> Bid Tracker
-                        </a>
-                    </li>
-                    <!-- <li class="nav-item">
-                        <a class="nav-link">
-                            <i class="bi bi-bar-chart"></i> Analitycs
-                        </a>
-                    </li> -->
-                </ul>
-                <!-- Divider -->
-              
-                <!-- Push content down -->
-                <div class="mt-auto"></div>
-                <!-- User (md) -->
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link">
-                            <i class="bi bi-person-square"></i> Account
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" (click)="logOut()" >
-                            <i class="bi bi-box-arrow-left"></i> Logout
-                        </a>
-                    </li>
-                </ul>
-            </div>
+          </a>
+          <div class="dropdown-menu dropdown-menu-end" aria-labelledby="sidebarAvatar">
+            <a class="dropdown-item">Profile</a>
+            <hr class="dropdown-divider">
+            <a (click)="logOut()" class="dropdown-item">Logout</a>
+          </div>
         </div>
-    </nav>
-    <!-- Main content -->
-    <div class="h-screen flex-grow-1 overflow-y-lg-auto">
-        <!-- Header -->
-        <header class="bg-surface-primary border-bottom pt-6">
-            <div class="container-fluid">
-                <div class="mb-npx">
-                    <div class="row align-items-center">
-                        <div class="col-sm-6 col-12 mb-4 mb-sm-0">
-                        </div>
+      </div>
 
-                        <!-- Actions -->
-                        <div class="col-sm-6 col-12 text-sm-end">
-                            <div class="action mx-n1" (click)="fetchData()">
-                                 <span>Last Fetched At: {{lastFetchDataAt[0].lastFetchDataAt}}  </span>
-                                <a  class="btn d-inline-flex btn-sm btn-neutral border-base mx-1">
-                                    <span class=" pe-2">
-                                        <i class="bi bi-arrow-clockwise"></i>
-                                    </span>
-                                    <span>Fetch Data</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <br>
-                </div>
-            </div>
-        </header>
-        <!-- Main -->
-        <router-outlet></router-outlet>
+      <!-- Collapse -->
+      <div class="navbar-collapse">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
+              <i class="bi bi-house"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a routerLink="/dashboard/inventory-list" routerLinkActive="active" class="nav-link">
+              <i class="bi bi-box-seam"></i> Inventory
+            </a>
+          </li>
+          <li class="nav-item">
+            <a routerLink="/dashboard/movements" routerLinkActive="active" class="nav-link">
+              <i class="bi bi-arrow-left-right"></i> Stock Logs
+            </a>
+          </li>
+          <li class="nav-item">
+            <a routerLink="/dashboard/valuation" routerLinkActive="active" class="nav-link">
+              <i class="bi bi-graph-up"></i> Valuation
+            </a>
+          </li>
+          <li class="nav-item">
+            <a routerLink="/dashboard/bid-tracker" routerLinkActive="active" class="nav-link">
+              <i class="bi bi-bar-chart"></i> Bid Tracker
+            </a>
+          </li>
+        </ul>
+
+        <div class="mt-auto"></div>
+
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link">
+              <i class="bi bi-person-square"></i> Account
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" (click)="logOut()">
+              <i class="bi bi-box-arrow-left"></i> Logout
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
+  </nav>
+
+  <!-- Main content -->
+  <div class="h-screen flex-grow-1 overflow-y-lg-auto">
+    <header class="bg-surface-primary border-bottom pt-6">
+      <div class="container-fluid">
+        <div class="mb-npx">
+          <div class="row align-items-center">
+            <div class="col-sm-6 col-12 mb-4 mb-sm-0"></div>
+            <div class="col-sm-6 col-12 text-sm-end">
+              <div class="action mx-n1" (click)="fetchData()">
+                <span *ngIf="lastFetchDataAt?.length">Last Fetched At: {{ lastFetchDataAt[0].lastFetchDataAt }} </span>
+                <a class="btn d-inline-flex btn-sm btn-neutral border-base mx-1">
+                  <span class="pe-2">
+                    <i class="bi bi-arrow-clockwise"></i>
+                  </span>
+                  <span>Fetch Data</span>
+                </a>
+              </div>
+            </div>
+          </div>
+          <br>
+        </div>
+      </div>
+    </header>
+
+    <!-- Router children render here -->
+    <router-outlet></router-outlet>
+  </div>
 </div>

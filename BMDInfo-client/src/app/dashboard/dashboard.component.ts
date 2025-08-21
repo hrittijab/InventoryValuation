@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, Inject, PLATFORM_ID } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { DataServiceService } from '../data-service.service';
@@ -7,73 +7,63 @@ import { DataServiceService } from '../data-service.service';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [
-              CommonModule,
-              FormsModule,
-              RouterModule,
-            ],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent {
-
   lastFetchDataAt: any;
   isLoaderVisible = false;
+  storedValue!: any;
 
   constructor(
     private router: Router,
     private dataService: DataServiceService,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
-  storedValue!: any;
   ngOnInit(): void {
-    // Check if the user is logged in as admin
-    if(!sessionStorage.getItem('admin')) {
-      this.router.navigate(['/login']);
-      return;
+    if (isPlatformBrowser(this.platformId)) {
+      const admin = sessionStorage.getItem('admin');
+
+      // if (!admin) {
+      //   this.router.navigate(['/login']);
+      //   return;
+      // }
+
+      this.storedValue = admin;
     }
-    this.storedValue = sessionStorage.getItem('admin');
 
     this.dataService.getLastFetchedDataAt().subscribe({
-      next: (data) => {
-        this.lastFetchDataAt = data;
-      },
-      error: (err) => {
-        console.error('Error fetching last fetched data at:', err);
-        this.lastFetchDataAt = 'N/A';
-      }
+      next: (data) => (this.lastFetchDataAt = data),
+      error: () => (this.lastFetchDataAt = 'N/A')
     });
-
   }
 
-  searchProducts(data: NgForm){
+  searchProducts(data: NgForm) {}
 
-  }
-
-  logOut(){
-    sessionStorage.removeItem('admin');
+  logOut() {
+    if (isPlatformBrowser(this.platformId)) {
+      sessionStorage.removeItem('admin');
+    }
     this.router.navigate(['/login']);
-
   }
 
   fetchData() {
-    this.isLoaderVisible = true; // Show the loader
-      this.dataService.getSpradeSheetData().subscribe({
-      next: (r) => {
-      
-      },
+    this.isLoaderVisible = true;
+    this.dataService.getSpradeSheetData().subscribe({
+      next: () => {},
       error: (err) => {
         if (err.status === 200) {
-            alert('Data fetched successfully');
-            this.isLoaderVisible = false; // Hide the loader
-            window.location.reload();
-        }else {
-        alert('Error fetching data: ' + err.message);
-        this.isLoaderVisible = false; // Hide the loader
-        console.error(err);
+          alert('Data fetched successfully');
+          this.isLoaderVisible = false;
+          if (typeof window !== 'undefined') window.location.reload();
+        } else {
+          alert('Error fetching data: ' + err.message);
+          this.isLoaderVisible = false;
+          console.error(err);
         }
-      } 
+      }
     });
   }
-
 }

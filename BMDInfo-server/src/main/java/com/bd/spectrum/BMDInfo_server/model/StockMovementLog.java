@@ -8,6 +8,11 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.UUID;
 
+/**
+ * Entity representing a stock movement log (audit trail).
+ * Captures transfer or adjustment activities between locations
+ * for tracking and auditing purposes.
+ */
 @Entity
 @Data
 @NoArgsConstructor
@@ -25,4 +30,5 @@ public class StockMovementLog {
     private String toLocation;
     private Integer quantity;
     private LocalDate date;
+    private String action;
 }

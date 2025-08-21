@@ -7,8 +7,14 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Entity representing an inventory valuation record.
+ * Stores the calculated value of an item based on a chosen
+ * valuation method 
+ */
 @Entity
 @Data
 @NoArgsConstructor
@@ -25,5 +31,6 @@ public class InventoryValuation {
     private String valuationMethod; 
     private BigDecimal totalValue;
     private String location;
-    private LocalDate lastUpdated;
+        private LocalDateTime lastUpdated;
+
 }

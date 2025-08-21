@@ -30,8 +30,15 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
-
+import org.springframework.scheduling.annotation.Scheduled;
+/**
+ * Provides business logic for inventory management including:
+ * - Stock transfers, additions, and new item creation
+ * - Inventory valuation (FIFO, LIFO, Weighted Average)
+ * - Export of valuation reports (CSV / PDF)
+ * - Audit trail through movement logs and transactions
+ * - Scheduled automatic daily valuation snapshot
+ */
 @Service
 public class InventoryServiceImpl implements InventoryService {
 
@@ -52,19 +59,28 @@ public class InventoryServiceImpl implements InventoryService {
         this.valuationRepo = valuationRepo;
         this.movementRepo = movementRepo;
     }
+    /** Saves valuation snap for today if it doesnt exist already for that date */
+    private void saveValuationSnapshot(InventoryItem item, String location, String method, BigDecimal value) {
+        LocalDate today = LocalDate.now();
 
-    private List<StockTransaction> getTransactionsBySKUAndLocation(String sku, String location, boolean onlyInTransactions) {
-        List<UUID> matchingItemIds = itemRepo.findAll().stream()
-                .filter(i -> i.getSku().equals(sku))
-                .map(InventoryItem::getId)
-                .collect(Collectors.toList());
+        boolean exists = valuationRepo.existsByItemIdAndLocationAndValuationMethodAndDate(
+                item.getId(), location, method, today
+        );
 
-        return transactionRepo.findAll().stream()
-                .filter(tx -> matchingItemIds.contains(tx.getItem().getId())
-                        && tx.getLocation().equals(location)
-                        && (!onlyInTransactions || "IN".equalsIgnoreCase(tx.getType())))
-                .collect(Collectors.toList());
-    }
+        if (exists) {
+                return;
+        }
+
+        InventoryValuation valuation = new InventoryValuation();
+        valuation.setItem(item);
+        valuation.setLocation(location);
+        valuation.setValuationMethod(method);
+        valuation.setTotalValue(value);
+        valuation.setLastUpdated(LocalDateTime.now());
+        valuationRepo.save(valuation);
+        }
+
+
 
     @Override
     @Transactional
@@ -72,7 +88,7 @@ public class InventoryServiceImpl implements InventoryService {
         InventoryItem item = itemRepo.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found with ID: " + itemId));
 
-        List<StockTransaction> transactions = getTransactionsBySKUAndLocation(item.getSku(), location, false);
+        List<StockTransaction> transactions = transactionRepo.findByItemSkuAndLocation(item.getSku(), location);
 
         int totalIn = transactions.stream()
                 .filter(tx -> "IN".equalsIgnoreCase(tx.getType()))
@@ -85,7 +101,6 @@ public class InventoryServiceImpl implements InventoryService {
                 .sum();
 
         int remainingQty = totalIn - totalOut;
-
         if (remainingQty <= 0) {
             throw new RuntimeException("No available quantity for item at " + location);
         }
@@ -96,7 +111,6 @@ public class InventoryServiceImpl implements InventoryService {
                 .toList();
 
         BigDecimal totalCost = BigDecimal.ZERO;
-
         for (StockTransaction tx : fifoTransactions) {
             if (remainingQty <= 0) break;
             int usedQty = Math.min(remainingQty, tx.getQuantity());
@@ -104,20 +118,7 @@ public class InventoryServiceImpl implements InventoryService {
             remainingQty -= usedQty;
         }
 
-        InventoryValuation valuation = valuationRepo
-                .findByItemIdAndLocationAndValuationMethod(itemId, location, "FIFO")
-                .orElseGet(() -> {
-                    InventoryValuation newVal = new InventoryValuation();
-                    newVal.setItem(item);
-                    newVal.setLocation(location);
-                    newVal.setValuationMethod("FIFO");
-                    return newVal;
-                });
-
-        valuation.setTotalValue(totalCost);
-        valuation.setLastUpdated(LocalDate.now());
-        valuationRepo.save(valuation);
-
+        saveValuationSnapshot(item, location, "FIFO", totalCost);
         return totalCost;
     }
 
@@ -127,7 +128,8 @@ public class InventoryServiceImpl implements InventoryService {
         InventoryItem item = itemRepo.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found with ID: " + itemId));
 
-        List<StockTransaction> transactions = getTransactionsBySKUAndLocation(item.getSku(), location, true)
+        List<StockTransaction> transactions = transactionRepo
+                .findByItemSkuAndLocationAndType(item.getSku(), location, "IN")
                 .stream()
                 .sorted(Comparator.comparing(StockTransaction::getDate).reversed())
                 .toList();
@@ -146,20 +148,7 @@ public class InventoryServiceImpl implements InventoryService {
             remainingQty -= usedQty;
         }
 
-        InventoryValuation valuation = valuationRepo
-                .findByItemIdAndLocationAndValuationMethod(itemId, location, "LIFO")
-                .orElseGet(() -> {
-                    InventoryValuation newVal = new InventoryValuation();
-                    newVal.setItem(item);
-                    newVal.setLocation(location);
-                    newVal.setValuationMethod("LIFO");
-                    return newVal;
-                });
-
-        valuation.setTotalValue(totalCost);
-        valuation.setLastUpdated(LocalDate.now());
-        valuationRepo.save(valuation);
-
+        saveValuationSnapshot(item, location, "LIFO", totalCost);
         return totalCost;
     }
 
@@ -169,28 +158,16 @@ public class InventoryServiceImpl implements InventoryService {
         InventoryItem item = itemRepo.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found with ID: " + itemId));
 
-        String sku = item.getSku();
-        List<UUID> relatedItemIds = itemRepo.findAll().stream()
-                .filter(i -> i.getSku().equals(sku))
-                .map(InventoryItem::getId)
-                .collect(Collectors.toList());
+        List<StockTransaction> inTransactions = transactionRepo
+                .findByItemSkuAndLocationAndType(item.getSku(), location, "IN");
 
-        List<StockTransaction> transactions = transactionRepo.findAll().stream()
-                .filter(tx -> relatedItemIds.contains(tx.getItem().getId())
-                        && tx.getLocation().equals(location)
-                        && "IN".equalsIgnoreCase(tx.getType()))
-                .collect(Collectors.toList());
-
-        if (transactions.isEmpty()) {
+        if (inTransactions.isEmpty()) {
             throw new RuntimeException("No stock transactions found for this item at " + location);
         }
 
-        int totalInQty = transactions.stream().mapToInt(StockTransaction::getQuantity).sum();
+        int totalInQty = inTransactions.stream().mapToInt(StockTransaction::getQuantity).sum();
 
-        List<StockTransaction> allTransactions = transactionRepo.findAll().stream()
-                .filter(tx -> relatedItemIds.contains(tx.getItem().getId())
-                        && tx.getLocation().equals(location))
-                .collect(Collectors.toList());
+        List<StockTransaction> allTransactions = transactionRepo.findByItemSkuAndLocation(item.getSku(), location);
 
         int totalOutQty = allTransactions.stream()
                 .filter(tx -> "OUT".equalsIgnoreCase(tx.getType()))
@@ -199,128 +176,127 @@ public class InventoryServiceImpl implements InventoryService {
 
         int remainingQty = totalInQty - totalOutQty;
 
-        BigDecimal totalCost = transactions.stream()
+        BigDecimal totalCost = inTransactions.stream()
                 .map(tx -> tx.getPricePerUnit().multiply(BigDecimal.valueOf(tx.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal weightedAvg = totalCost.divide(BigDecimal.valueOf(totalInQty), 2, java.math.RoundingMode.HALF_UP);
         BigDecimal totalValue = weightedAvg.multiply(BigDecimal.valueOf(remainingQty));
 
-        InventoryValuation valuation = valuationRepo
-                .findByItemIdAndLocationAndValuationMethod(itemId, location, "Weighted Average")
-                .orElseGet(() -> {
-                    InventoryValuation newVal = new InventoryValuation();
-                    newVal.setItem(item);
-                    newVal.setLocation(location);
-                    newVal.setValuationMethod("Weighted Average");
-                    return newVal;
-                });
-
-        valuation.setTotalValue(totalValue);
-        valuation.setLastUpdated(LocalDate.now());
-        valuationRepo.save(valuation);
-
+        saveValuationSnapshot(item, location, "Weighted Average", totalValue);
         return totalValue;
     }
 
+    /** Transfer stock between locations and log the movement. */
 
-@Override
-@Transactional
-public void transferStock(UUID itemId, String fromLocation, String toLocation, int quantity) {
-    InventoryItem fromItem = itemRepo.findAll().stream()
-            .filter(i -> i.getId().equals(itemId) && i.getLocation().equals(fromLocation))
-            .findFirst()
-            .orElseThrow(() -> new RuntimeException("Item not found at source location."));
+    @Override
+    @Transactional
+    public void transferStock(UUID itemId, String fromLocation, String toLocation, int quantity) {
+        InventoryItem fromItem = itemRepo.findByIdAndLocation(itemId, fromLocation)
+                .orElseThrow(() -> new RuntimeException("Item not found at source location."));
 
-    if (fromItem.getQuantity() < quantity) {
-        throw new IllegalArgumentException("Not enough stock to transfer.");
+        if (fromItem.getQuantity() < quantity) {
+            throw new IllegalArgumentException("Not enough stock to transfer.");
+        }
+
+        fromItem.setQuantity(fromItem.getQuantity() - quantity);
+        itemRepo.save(fromItem);
+
+        StockTransaction outTx = new StockTransaction();
+        outTx.setItem(fromItem);
+        outTx.setLocation(fromLocation);
+        outTx.setQuantity(quantity);
+        outTx.setPricePerUnit(fromItem.getUnitPrice());
+        outTx.setDate(LocalDateTime.now());
+        outTx.setType("OUT");
+        transactionRepo.save(outTx);
+
+        InventoryItem toItem = itemRepo.findByNameAndLocation(fromItem.getName(), toLocation)
+                .orElseGet(() -> {
+                    InventoryItem newItem = new InventoryItem();
+                    newItem.setName(fromItem.getName());
+                    newItem.setCategory(fromItem.getCategory());
+                    newItem.setSku(fromItem.getSku());
+                    newItem.setLocation(toLocation);
+                    newItem.setUnitPrice(fromItem.getUnitPrice());
+                    newItem.setQuantity(0);
+                    return itemRepo.save(newItem);
+                });
+
+        toItem.setQuantity(toItem.getQuantity() + quantity);
+        itemRepo.save(toItem);
+
+        StockTransaction inTx = new StockTransaction();
+        inTx.setItem(toItem);
+        inTx.setLocation(toLocation);
+        inTx.setQuantity(quantity);
+        inTx.setPricePerUnit(fromItem.getUnitPrice());
+        inTx.setDate(LocalDateTime.now());
+        inTx.setType("IN");
+        transactionRepo.save(inTx);
+
+        StockMovementLog log = new StockMovementLog();
+        log.setItem(toItem);
+        log.setFromLocation(fromLocation);
+        log.setToLocation(toLocation);
+        log.setQuantity(quantity);
+        log.setDate(LocalDate.now());
+        movementRepo.save(log);
     }
-
-    fromItem.setQuantity(fromItem.getQuantity() - quantity);
-    itemRepo.save(fromItem);
-
-    StockTransaction outTx = new StockTransaction();
-    outTx.setItem(fromItem);
-    outTx.setLocation(fromLocation);
-    outTx.setQuantity(quantity);
-    outTx.setPricePerUnit(fromItem.getUnitPrice());
-    outTx.setDate(LocalDateTime.now());
-    outTx.setType("OUT");
-    transactionRepo.save(outTx);
-
-    InventoryItem toItem = itemRepo.findAll().stream()
-            .filter(i -> i.getName().equals(fromItem.getName())
-                    && i.getLocation().equals(toLocation))
-            .findFirst()
-            .orElseGet(() -> {
-                InventoryItem newItem = new InventoryItem();
-                newItem.setName(fromItem.getName());
-                newItem.setCategory(fromItem.getCategory());
-                newItem.setSku(fromItem.getSku());
-                newItem.setLocation(toLocation);
-                newItem.setUnitPrice(fromItem.getUnitPrice());
-                newItem.setQuantity(0);
-                return newItem;
-            });
-
-    toItem.setQuantity(toItem.getQuantity() + quantity);
-    toItem = itemRepo.save(toItem); 
-
-    StockTransaction inTx = new StockTransaction();
-    inTx.setItem(toItem); 
-    inTx.setLocation(toLocation);
-    inTx.setQuantity(quantity);
-    inTx.setPricePerUnit(fromItem.getUnitPrice());
-    inTx.setDate(LocalDateTime.now());
-    inTx.setType("IN");
-    transactionRepo.save(inTx);
-
-    StockMovementLog log = new StockMovementLog();
-    log.setItem(toItem); 
-    log.setFromLocation(fromLocation);
-    log.setToLocation(toLocation);
-    log.setQuantity(quantity);
-    log.setDate(LocalDate.now());
-    movementRepo.save(log);
-}
-
-
 
     @Override
     public List<InventoryItem> getAllItems() {
         return itemRepo.findAll();
     }
+
     @Override
     public List<StockMovementLog> getAllMovements() {
         return movementRepo.findAll();
     }
-
-
-
+    
+    /** Export csv and pdf files for the valuations */
     @Override
-    public byte[] exportValuationAsCSV() throws IOException {
-        List<InventoryValuation> valuations = valuationRepo.findAll();
+        public byte[] exportValuationAsCSV(UUID itemId, String location) throws IOException {
+        List<InventoryValuation> valuations;
+
+        if (itemId != null && location != null) {
+                valuations = valuationRepo.findByItemIdAndLocationOrderByLastUpdatedAsc(itemId, location);
+        } else if (itemId != null) {
+                valuations = valuationRepo.findByItemIdOrderByLastUpdatedAsc(itemId);
+        } else {
+                valuations = valuationRepo.findAll();
+        }
 
         StringWriter writer = new StringWriter();
         CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT
                 .withHeader("Item", "Location", "Method", "Value", "Date"));
 
         for (InventoryValuation val : valuations) {
-            csvPrinter.printRecord(
-                    val.getItem().getName(),
-                    val.getLocation(),
-                    val.getValuationMethod(),
-                    val.getTotalValue(),
-                    val.getLastUpdated()
-            );
+                csvPrinter.printRecord(
+                        val.getItem().getName(),
+                        val.getLocation(),
+                        val.getValuationMethod(),
+                        val.getTotalValue(),
+                        val.getLastUpdated()
+                );
         }
 
         csvPrinter.flush();
         return writer.toString().getBytes();
-    }
+        }
 
-    @Override
-    public byte[] exportValuationAsPDF() throws IOException {
+        @Override
+        public byte[] exportValuationAsPDF(UUID itemId, String location) throws IOException {
+        List<InventoryValuation> valuations;
+
+        if (itemId != null && location != null) {
+                valuations = valuationRepo.findByItemIdAndLocationOrderByLastUpdatedAsc(itemId, location);
+        } else if (itemId != null) {
+                valuations = valuationRepo.findByItemIdOrderByLastUpdatedAsc(itemId);
+        } else {
+                valuations = valuationRepo.findAll();
+        }
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PdfWriter writer = new PdfWriter(baos);
         PdfDocument pdf = new PdfDocument(writer);
@@ -340,77 +316,101 @@ public void transferStock(UUID itemId, String fromLocation, String toLocation, i
         table.addHeaderCell("Value");
         table.addHeaderCell("Date");
 
-        for (InventoryValuation val : valuationRepo.findAll()) {
-            table.addCell(val.getItem().getName());
-            table.addCell(val.getLocation());
-            table.addCell(val.getValuationMethod());
-            table.addCell(val.getTotalValue().toString());
-            table.addCell(val.getLastUpdated().toString());
+        for (InventoryValuation val : valuations) {
+                table.addCell(val.getItem().getName());
+                table.addCell(val.getLocation());
+                table.addCell(val.getValuationMethod());
+                table.addCell(val.getTotalValue().toString());
+                table.addCell(val.getLastUpdated().toString());
         }
 
         doc.add(table);
         doc.close();
         return baos.toByteArray();
+        }
+
+    /** Add stock to an existing item (creates a transaction). */
+    @Override
+    @Transactional
+    public void addStock(UUID itemId, int quantity, BigDecimal pricePerUnit, String location) {
+        InventoryItem item = itemRepo.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Item not found"));
+
+        item.setQuantity(item.getQuantity() + quantity);
+        itemRepo.save(item);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        StockTransaction newTransaction = new StockTransaction();
+        newTransaction.setItem(item);
+        newTransaction.setQuantity(quantity);
+        newTransaction.setPricePerUnit(pricePerUnit);
+        newTransaction.setLocation(location);
+        newTransaction.setType("IN");
+        newTransaction.setDate(LocalDateTime.now());
+
+        transactionRepo.save(newTransaction);
     }
-@Override
-@Transactional
-public void addStock(UUID itemId, int quantity, BigDecimal pricePerUnit, String location) {
-    InventoryItem item = itemRepo.findById(itemId)
-            .orElseThrow(() -> new RuntimeException("Item not found"));
+    
+    /** Save a new item and record an initial transaction if stock > 0. */
+    @Override
+    @Transactional
+    public InventoryItem saveItem(AddInventoryItemRequest request) {
+        InventoryItem item = new InventoryItem();
+        item.setName(request.getName());
+        item.setCategory(request.getCategory());
+        item.setSku(request.getSku());
+        item.setLocation(request.getLocation());
+        item.setUnitPrice(request.getUnitPrice());
 
-    item.setQuantity(item.getQuantity() + quantity);
-    itemRepo.save(item);
+        int initialQty = request.getQuantity();
+        item.setQuantity(initialQty);
 
-    entityManager.flush();
-    entityManager.clear();
+        InventoryItem savedItem = itemRepo.save(item);
 
-    StockTransaction newTransaction = new StockTransaction();
-    newTransaction.setItem(item);
-    newTransaction.setQuantity(quantity);
-    newTransaction.setPricePerUnit(pricePerUnit);
-    newTransaction.setLocation(location);
-    newTransaction.setType("IN");
-    newTransaction.setDate(LocalDateTime.now());
+        if (initialQty > 0) {
+            StockTransaction tx = new StockTransaction();
+            tx.setItem(savedItem);
+            tx.setLocation(request.getLocation());
+            tx.setQuantity(initialQty);
+            tx.setPricePerUnit(request.getUnitPrice());
+            tx.setDate(LocalDateTime.now());
+            tx.setType("IN");
 
-    // Step 4: Save the new transaction
-    transactionRepo.save(newTransaction);
-}
+            transactionRepo.save(tx);
+        }
 
-
-
-
-
-@Override
-@Transactional
-public InventoryItem saveItem(AddInventoryItemRequest request) {
-    InventoryItem item = new InventoryItem();
-    item.setName(request.getName());
-    item.setCategory(request.getCategory());
-    item.setSku(request.getSku());
-    item.setLocation(request.getLocation());
-    item.setUnitPrice(request.getUnitPrice());
-
-    int initialQty = request.getQuantity();
-    item.setQuantity(initialQty);
-
-    InventoryItem savedItem = itemRepo.save(item);
-
-    if (initialQty > 0) {
-        StockTransaction tx = new StockTransaction();
-        tx.setItem(savedItem);
-        tx.setLocation(request.getLocation());
-        tx.setQuantity(initialQty);
-        tx.setPricePerUnit(request.getUnitPrice());
-        tx.setDate(LocalDateTime.now());
-        tx.setType("IN");
-
-        transactionRepo.save(tx);
+        return savedItem;
     }
 
-    return savedItem;
-}
+    @Override
+    public List<InventoryValuation> getAllValuations() {
+        return valuationRepo.findAll();
+    }
 
+    @Override
+    public List<InventoryValuation> getValuationHistory(UUID itemId, String location) {
+        if (location != null && !location.isBlank()) {
+            return valuationRepo.findByItemIdAndLocationOrderByLastUpdatedAsc(itemId, location);
+        }
+        return valuationRepo.findByItemIdOrderByLastUpdatedAsc(itemId);
+    }
 
-
-
+    // Run automatically
+    @Scheduled(cron = "0 0 0 * * ?") 
+    @Transactional
+    public void scheduledValuationUpdate() {
+        System.out.println("Scheduled valuation update executed at " + LocalDateTime.now());
+        List<InventoryItem> items = itemRepo.findAll();
+        for (InventoryItem item : items) {
+            try {
+                calculateFIFO(item.getId(), item.getLocation());
+                calculateLIFO(item.getId(), item.getLocation());
+                calculateWeightedAverage(item.getId(), item.getLocation());
+            } catch (Exception e) {
+                System.err.println("Valuation failed for item " + item.getId() + ": " + e.getMessage());
+            }
+        }
+    }
 }

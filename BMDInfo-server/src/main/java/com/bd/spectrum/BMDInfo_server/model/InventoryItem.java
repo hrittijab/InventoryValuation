@@ -7,6 +7,12 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+
+/**
+ * Entity representing an item in the inventory.
+ * Stores basic item details along with quantity, location,
+ * and pricing info.
+ */
 @Entity
 @Data
 @NoArgsConstructor
